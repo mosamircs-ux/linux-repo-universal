@@ -1,0 +1,37 @@
+name: Reproducible ISO Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-release-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools
+
+      - name: Run Build Pipeline
+        run: |
+          chmod +x scripts/build-all.sh
+          ./scripts/build-all.sh
+
+      - name: Upload Release ISO & Checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetheros-solstice-amd64-iso
+          path: |
+            aetheros-1.0.0-solstice-amd64.iso
+            aetheros-1.0.0-solstice-amd64.iso.sha256

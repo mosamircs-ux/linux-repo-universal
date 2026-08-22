@@ -1,0 +1,14 @@
+Source: aether-artwork
+Section: misc
+Priority: optional
+Maintainer: AetherOS Design Engineering <design@aetheros.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13)
+
+Package: aether-artwork
+Architecture: all
+Depends: ${misc:Depends},
+         papirus-icon-theme | adwaita-icon-theme
+Description: AetherOS official themes, wallpapers, and brand identity
+ This package delivers original 4K wallpapers, Plymouth boot splash,
+ GRUB2 bootloader theme, GTK 3/4 CSS themes, and font configuration.

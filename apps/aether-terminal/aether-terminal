@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# AetherOS Terminal Launcher Wrapper
+# Launches modern Wayland terminal with AetherOS color palette and JetBrains Mono typography
+
+TERMINAL_BIN=""
+
+for term in foot alacritty kitty gnome-terminal xfce4-terminal xterm; do
+    if command -v "$term" >/dev/null 2>&1; then
+        TERMINAL_BIN="$term"
+        break
+    fi
+done
+
+if [ -z "$TERMINAL_BIN" ]; then
+    echo "No terminal emulator found." >&2
+    exit 1
+fi
+
+exec "$TERMINAL_BIN" "$@"

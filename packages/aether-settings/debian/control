@@ -1,0 +1,19 @@
+Source: aether-settings
+Section: utils
+Priority: optional
+Maintainer: AetherOS Core Engineering <core@aetheros.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13), python3
+
+Package: aether-settings
+Architecture: all
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-gi,
+         gir1.2-gtk-3.0,
+         network-manager,
+         bluez,
+         pipewire
+Description: AetherOS graphical and CLI system settings center
+ Unified control panel for display, appearance, language (English/Arabic),
+ sound, network, and power configurations.

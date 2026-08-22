@@ -1,0 +1,28 @@
+Source: aether-desktop-core
+Section: x11
+Priority: optional
+Maintainer: AetherOS Core Engineering <core@aetheros.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13)
+
+Package: aether-desktop-core
+Architecture: all
+Depends: ${misc:Depends},
+         aether-base (= ${source:Version}),
+         aether-artwork (= ${source:Version}),
+         wayfire | labwc,
+         xwayland,
+         thunar,
+         foot | alacritty,
+         swaybg,
+         swaylock,
+         wlsunset,
+         grim,
+         slurp,
+         fonts-inter,
+         fonts-cairo,
+         fonts-tajawal | fonts-noto-core,
+         fonts-jetbrains-mono
+Description: AetherOS Desktop Environment metapackage
+ This package provides the full lightweight Wayland desktop session,
+ including dock, topbar, application launcher, notifications, and settings.

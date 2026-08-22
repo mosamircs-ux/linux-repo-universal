@@ -1,0 +1,21 @@
+Source: aether-installer
+Section: utils
+Priority: optional
+Maintainer: AetherOS Release Engineering <release@aetheros.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13), python3
+
+Package: aether-installer
+Architecture: all
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         parted,
+         dosfstools,
+         e2fsprogs,
+         btrfs-progs,
+         grub-efi-amd64-bin | grub-pc-bin,
+         rsync,
+         squashfs-tools
+Description: AetherOS graphical and CLI system installer
+ Modern bilingual system installer with automatic Btrfs subvolume layout,
+ Zstd compression, UEFI/BIOS partitioning, and OEM mode support.

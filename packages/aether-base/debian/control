@@ -1,0 +1,26 @@
+Source: aether-base
+Section: admin
+Priority: standard
+Maintainer: AetherOS Core Engineering <core@aetheros.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13)
+
+Package: aether-base
+Architecture: all
+Depends: ${misc:Depends},
+         systemd,
+         systemd-zram-generator,
+         network-manager,
+         pipewire,
+         pipewire-pulse,
+         wireplumber,
+         apparmor,
+         polkitd,
+         btrfs-progs,
+         zstd,
+         sudo,
+         curl,
+         ca-certificates
+Description: AetherOS base system configuration metapackage
+ This package provides core system configurations, kernel sysctl tuning,
+ zram swap defaults, udev rules, and standard security parameters.

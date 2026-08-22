@@ -1,0 +1,47 @@
+# AetherOS HD 1080p/4K GRUB2 Bootloader Theme
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#0B0F19"
+terminal-font: "Unifont Regular 16"
+
+# Boot Menu Component
++ boot_menu {
+    left = 25%
+    top = 35%
+    width = 50%
+    height = 40%
+    item_font = "DejaVu Sans Bold 16"
+    item_color = "#94A3B8"
+    selected_item_font = "DejaVu Sans Bold 16"
+    selected_item_color = "#FFFFFF"
+    selected_item_pixmap_style = "select_*.png"
+    icon_width = 32
+    icon_height = 32
+    item_height = 44
+    item_padding = 12
+    item_spacing = 8
+}
+
+# Progress Bar / Timeout
++ progress_bar {
+    id = "__timeout__"
+    left = 35%
+    top = 80%
+    width = 30%
+    height = 8
+    show_text = false
+    bg_color = "#1E293B"
+    fg_color = "#00D2FF"
+    border_color = "rgba(255, 255, 255, 0.1)"
+}
+
+# Branding Label Footer
++ label {
+    left = 0%
+    top = 92%
+    width = 100%
+    align = "center"
+    color = "#64748B"
+    font = "DejaVu Sans Regular 12"
+    text = "AetherOS Solstice LTS • Linux Kernel 6.8+ • Secure Boot Compatible"
+}

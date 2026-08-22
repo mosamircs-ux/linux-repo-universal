@@ -1,0 +1,19 @@
+#include <tunables/global>
+
+profile aether-crash-handler /usr/bin/aether-crash-handler flags=(attach_disconnected,enforce) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/python>
+
+  /usr/bin/aether-crash-handler r,
+  /usr/bin/python3* ix,
+  /var/log/aether/crashes/** rw,
+  /etc/aether/** r,
+  /proc/*/cmdline r,
+  /proc/*/status r,
+  /tmp/** rwk,
+
+  # Deny all outgoing raw network traffic (zero-telemetry assurance)
+  deny network raw,
+  deny network packet,
+}

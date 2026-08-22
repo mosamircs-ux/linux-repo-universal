@@ -1,0 +1,59 @@
+#include <tunables/global>
+
+profile aether-updater /usr/bin/aether-updater flags=(attach_disconnected,enforce) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/ssl_certs>
+  #include <abstractions/python>
+
+  # Executables
+  /usr/bin/aether-updater r,
+  /usr/bin/python3* ix,
+  /usr/bin/apt-get Cx -> child_apt,
+  /usr/bin/apt Cx -> child_apt,
+  /usr/bin/dpkg Cx -> child_dpkg,
+  /usr/bin/flatpak Cx -> child_flatpak,
+  /usr/bin/btrfs Cx -> child_btrfs,
+
+  # Configuration and state
+  /etc/aether/** r,
+  /etc/apt/** r,
+  /var/lib/aether/** rw,
+  /var/cache/apt/** rw,
+  /var/log/aether/** rw,
+  /tmp/** rwk,
+
+  # D-Bus IPC
+  dbus bus=system peer=(name=org.freedesktop.PackageKit),
+  dbus bus=system peer=(name=org.aetheros.Updater),
+
+  profile child_apt {
+    #include <abstractions/base>
+    /usr/bin/apt* ixr,
+    /usr/bin/dpkg ixr,
+    /etc/apt/** r,
+    /var/lib/dpkg/** rwk,
+    /var/cache/apt/** rwk,
+    /tmp/** rwk,
+  }
+
+  profile child_dpkg {
+    #include <abstractions/base>
+    /usr/bin/dpkg ixr,
+    /var/lib/dpkg/** rwk,
+    /** rwk,
+  }
+
+  profile child_flatpak {
+    #include <abstractions/base>
+    /usr/bin/flatpak ixr,
+    /var/lib/flatpak/** rwk,
+    /etc/flatpak/** r,
+  }
+
+  profile child_btrfs {
+    #include <abstractions/base>
+    /usr/bin/btrfs ixr,
+    /sbin/btrfs ixr,
+  }
+}

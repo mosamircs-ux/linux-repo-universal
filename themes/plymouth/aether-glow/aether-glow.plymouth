@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Aether Glow
+Description=High-performance smooth glowing boot splash for AetherOS
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/aether-glow
+ScriptFile=/usr/share/plymouth/themes/aether-glow/aether-glow.script

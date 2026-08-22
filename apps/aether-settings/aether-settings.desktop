@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Settings
+Name[ar]=الإعدادات
+Comment=Configure AetherOS system settings, display, audio, and language
+Comment[ar]=تخصيص إعدادات النظام والشاشات والصوت واللغة لنظام أيثر
+Exec=aether-settings
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=Settings;HardwareSettings;DesktopSettings;
+StartupNotify=true

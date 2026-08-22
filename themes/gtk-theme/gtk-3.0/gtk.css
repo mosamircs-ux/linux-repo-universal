@@ -1,0 +1,113 @@
+/* AetherOS Modern Slate Dark GTK 3.0 Theme */
+/* Color Palette */
+@define-color aether_bg_dark #0B0F19;
+@define-color aether_surface #131B2E;
+@define-color aether_surface_elevated #1E293B;
+@define-color aether_border rgba(255, 255, 255, 0.08);
+@define-color aether_border_focus #00D2FF;
+@define-color aether_accent #00D2FF;
+@define-color aether_accent_hover #38BDF8;
+@define-color aether_indigo #6366F1;
+@define-color aether_fg #F8FAFC;
+@define-color aether_fg_muted #94A3B8;
+@define-color aether_danger #EF4444;
+@define-color aether_success #10B981;
+@define-color aether_warning #F59E0B;
+
+/* Global Window */
+window, .background {
+    background-color: @aether_bg_dark;
+    color: @aether_fg;
+    font-family: 'Inter', 'Cairo', 'Tajawal', sans-serif;
+}
+
+/* Header Bar / Titlebar */
+headerbar, .titlebar {
+    background-color: @aether_surface;
+    border-bottom: 1px solid @aether_border;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    min-height: 48px;
+    padding: 0 8px;
+}
+
+headerbar .title {
+    font-weight: 600;
+    color: @aether_fg;
+}
+
+/* Standard Buttons */
+button {
+    background-color: @aether_surface_elevated;
+    color: @aether_fg;
+    border: 1px solid @aether_border;
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: all 180ms ease-in-out;
+}
+
+button:hover {
+    background-color: #2D3748;
+    border-color: @aether_accent;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+
+button:active {
+    background-color: @aether_indigo;
+    color: #FFFFFF;
+}
+
+button.suggested-action {
+    background: linear-gradient(135deg, #00D2FF 0%, #3B82F6 100%);
+    color: #0B0F19;
+    font-weight: 600;
+    border: none;
+}
+
+button.suggested-action:hover {
+    background: linear-gradient(135deg, #38BDF8 0%, #60A5FA 100%);
+    box-shadow: 0 0 16px rgba(0, 210, 255, 0.4);
+}
+
+button.destructive-action {
+    background-color: @aether_danger;
+    color: #FFFFFF;
+}
+
+/* Text Inputs & Search */
+entry, textview {
+    background-color: @aether_surface;
+    border: 1px solid @aether_border;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: @aether_fg;
+}
+
+entry:focus {
+    border-color: @aether_border_focus;
+    box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.25);
+}
+
+/* Sidebars & Lists */
+listview, treeview, .sidebar {
+    background-color: @aether_surface;
+    color: @aether_fg;
+    border-radius: 8px;
+}
+
+row:selected {
+    background: linear-gradient(90deg, rgba(0, 210, 255, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+    border-left: 3px solid @aether_accent;
+    color: #FFFFFF;
+}
+
+/* Scrollbars */
+scrollbar slider {
+    min-width: 6px;
+    min-height: 6px;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+scrollbar slider:hover {
+    background-color: @aether_accent;
+}

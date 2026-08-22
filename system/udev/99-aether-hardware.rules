@@ -1,0 +1,16 @@
+# AetherOS Hardware Access and Privilege Rules
+# /etc/udev/rules.d/99-aether-hardware.rules
+
+# Allow desktop users in 'video' and 'input' groups to adjust backlight brightness without sudo
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod a+w /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="*::kbd_backlight", RUN+="/bin/chmod a+w /sys/class/leds/%k/brightness"
+
+# Direct Rendering Manager (DRM) / GPU Render nodes permissions
+KERNEL=="renderD*", GROUP="render", MODE="0666"
+
+# Low latency audio access
+KERNEL=="rtc0", GROUP="audio", MODE="0660"
+KERNEL=="hpet", GROUP="audio", MODE="0660"
+
+# Game controllers and VR devices (evdev)
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"

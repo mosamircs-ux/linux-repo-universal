@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=AetherOS Desktop
+Comment=Production-grade lightweight Wayland desktop session for AetherOS
+Exec=/usr/bin/start-aether-session
+TryExec=/usr/bin/wayfire
+Type=Application
+DesktopNames=AetherOS;GNOME;Wayland

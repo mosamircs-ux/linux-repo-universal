@@ -1,0 +1,19 @@
+/* AetherOS GTK 4.0 & Libadwaita Theme Mapping */
+@import url("../gtk-3.0/gtk.css");
+
+window.messagedialog .response-area > button {
+    padding: 10px 24px;
+    border-radius: 8px;
+}
+
+card {
+    background-color: #131B2E;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+card:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+}

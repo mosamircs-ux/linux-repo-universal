@@ -1,0 +1,17 @@
+[Unit]
+Description=AetherOS First-Boot Initialization and Machine ID Setup
+ConditionPathExists=!/var/lib/aether/firstboot.done
+After=local-fs.target systemd-sysctl.service systemd-udev-settle.service
+Before=display-manager.service graphical.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/mkdir -p /var/lib/aether
+ExecStart=/usr/libexec/aether/aether-firstboot-init
+ExecStartPost=/bin/touch /var/lib/aether/firstboot.done
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

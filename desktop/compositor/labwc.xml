@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labwc_config>
+  <core>
+    <decoration>server</decoration>
+    <gap>4</gap>
+  </core>
+  <keyboard>
+    <default />
+    <keybind key="W-t"><action name="Execute" command="aether-terminal" /></keybind>
+    <keybind key="W-a"><action name="Execute" command="python3 /usr/lib/aether/shell/launcher.py" /></keybind>
+    <keybind key="W-e"><action name="Execute" command="thunar" /></keybind>
+    <keybind key="W-i"><action name="Execute" command="aether-settings" /></keybind>
+    <keybind key="W-q"><action name="Close" /></keybind>
+    <keybind key="A-F4"><action name="Close" /></keybind>
+    <keybind key="W-Left"><action name="SnapToEdge" direction="left" /></keybind>
+    <keybind key="W-Right"><action name="SnapToEdge" direction="right" /></keybind>
+    <keybind key="W-Up"><action name="ToggleMaximize" /></keybind>
+  </keyboard>
+  <theme>
+    <name>Aether-Dark</name>
+    <cornerRadius>10</cornerRadius>
+  </theme>
+</labwc_config>

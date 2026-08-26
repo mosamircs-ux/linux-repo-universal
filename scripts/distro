@@ -310,6 +310,13 @@ def main():
     p_audit.add_argument("--json", action="store_true", help="Output audit results in JSON format")
     p_audit.add_argument("--summary", action="store_true", help="Display concise summary")
 
+    # Developer Workstation
+    p_dev = subparsers.add_parser("dev", help="Manage optional developer workstation toolchains and runtimes")
+    p_dev.add_argument("dev_action", choices=["install", "remove", "doctor", "update", "list"], help="Action to perform")
+    p_dev.add_argument("dev_targets", nargs="*", help="Tools or bundles (e.g. rust, go, web, c-cpp, all)")
+    p_dev.add_argument("--dry-run", action="store_true", help="Simulate action without changes")
+    p_dev.add_argument("--json", action="store_true", help="JSON output format for doctor")
+
     args = parser.parse_args()
 
     if args.command == "search":
@@ -347,6 +354,34 @@ def main():
                 for r in rep["recommendations"]:
                     print(f"  • {r}")
             print("=" * 78)
+    elif args.command == "dev":
+        dev_mod = load_mod("distro_dev", "scripts/distro-dev")
+        mgr = dev_mod.DevWorkstationManager()
+        if args.dev_action == "install":
+            mgr.install(args.dev_targets or ["essentials"], dry_run=args.dry_run)
+        elif args.dev_action == "remove":
+            mgr.remove(args.dev_targets or ["essentials"], dry_run=args.dry_run)
+        elif args.dev_action == "update":
+            mgr.update(args.dev_targets or None, dry_run=args.dry_run)
+        elif args.dev_action == "doctor":
+            rep = mgr.doctor()
+            if args.json:
+                import json
+                print(json.dumps(rep, indent=2))
+            else:
+                print("=" * 82)
+                print("         AetherOS Developer Workstation Health Doctor (distro dev doctor)     ")
+                print("=" * 82)
+                print(f"Coverage: {rep['installed_count']}/{rep['total_tools']} tools installed ({rep['coverage_pct']}%)")
+                print("-" * 82)
+                for t in rep["tools"]:
+                    st = "[READY]" if t["installed"] else "[MISSING]"
+                    dt = f"{t['binary_path']} ({t['version']})" if t["installed"] else "Not installed"
+                    print(f" {st:<10} {t['name']:<24} {t['category']:<14} {dt}")
+                print("=" * 82)
+        elif args.dev_action == "list":
+            for bname, btools in dev_mod.BUNDLES.items():
+                print(f"Bundle: {bname:<14} -> {', '.join(btools)}")
 
 if __name__ == "__main__":
     main()

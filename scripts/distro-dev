@@ -305,9 +305,14 @@ class DevWorkstationManager:
                 cmd = [active_bin] + info["version_cmd"][1:]
                 res = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
                 output = (res.stdout or res.stderr).strip().split("\n")[0]
-                version_str = output
+                if res.returncode != 0 or "could not be found" in output.lower():
+                    installed = False
+                    bin_path = None
+                    version_str = "Not installed"
+                else:
+                    version_str = output
             except Exception:
-                version_str = "Installed (version probe failed)"
+                version_str = "Installed"
 
         return {
             "id": tool_id,

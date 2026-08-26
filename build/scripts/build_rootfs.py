@@ -216,10 +216,11 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-3.0/gtk-light.css"), os.path.join(gtk3_light, "gtk.css"))
             shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-4.0/gtk-light.css"), os.path.join(gtk4_light, "gtk.css"))
 
-        # Core System Applications (aether-settings)
+        # Core System Applications (aether-settings & aether-files)
         apps_src = os.path.join(REPO_ROOT, "apps")
         if os.path.exists(apps_src):
-            print("[RootFS] Staging core applications (aether-settings)...")
+            print("[RootFS] Staging core applications (aether-settings, aether-files)...")
+            # aether-settings
             settings_dest = os.path.join(target_dir, "usr/lib/aether/settings")
             os.makedirs(settings_dest, exist_ok=True)
             settings_app_src = os.path.join(apps_src, "aether-settings")
@@ -231,6 +232,17 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 d_file = os.path.join(settings_app_src, "aether-settings.desktop")
                 if os.path.exists(d_file):
                     shutil.copy2(d_file, app_dest)
+
+            # aether-files
+            files_dest = os.path.join(target_dir, "usr/lib/aether/files")
+            os.makedirs(files_dest, exist_ok=True)
+            files_app_src = os.path.join(apps_src, "aether-files")
+            if os.path.exists(files_app_src):
+                shutil.copytree(files_app_src, files_dest, dirs_exist_ok=True)
+                shutil.copy2(os.path.join(files_app_src, "file_manager.py"), os.path.join(bin_dest, "aether-files"))
+                d_file_files = os.path.join(files_app_src, "aether-files.desktop")
+                if os.path.exists(d_file_files):
+                    shutil.copy2(d_file_files, os.path.join(target_dir, "usr/share/applications"))
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

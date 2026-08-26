@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=About AetherOS
+GenericName=System Information
+Comment=View hardware specifications, OS edition, and system details
+Exec=aether-sysinfo
+Icon=help-about
+Terminal=false
+Categories=System;Utility;
+Keywords=system;about;specs;hardware;kernel;cpu;ram;version;
+StartupNotify=true

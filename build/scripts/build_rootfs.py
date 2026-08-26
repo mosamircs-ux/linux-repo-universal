@@ -267,42 +267,46 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 shutil.copy2(os.path.join(settings_app_src, "settings_app.py"), os.path.join(bin_dest, "aether-settings"))
                 app_dest = os.path.join(target_dir, "usr/share/applications")
                 os.makedirs(app_dest, exist_ok=True)
-                d_file = os.path.join(settings_app_src, "aether-settings.desktop")
-                if os.path.exists(d_file):
-                    shutil.copy2(d_file, app_dest)
+            # Auto-stage all applications in apps/
+            app_entry_points = {
+                "aether-settings": "settings_app.py",
+                "aether-files": "file_manager.py",
+                "aether-software": "software_hub.py",
+                "aether-updater": "updater_app.py",
+                "aether-terminal": "terminal_app.py",
+                "aether-text": "editor_app.py",
+                "aether-calc": "calculator_app.py",
+                "aether-calendar": "calendar_app.py",
+                "aether-screenshot": "screenshot_app.py",
+                "aether-image": "image_viewer_app.py",
+                "aether-pdf": "pdf_viewer_app.py",
+                "aether-archive": "archive_app.py",
+                "aether-disks": "disk_utility_app.py",
+                "aether-monitor": "monitor_app.py",
+                "aether-camera": "camera_app.py",
+                "aether-player": "player_app.py",
+                "aether-backup": "backup_app.py",
+                "aether-logs": "log_viewer_app.py",
+                "aether-sysinfo": "sysinfo_app.py",
+                "aether-usage": "disk_usage_app.py"
+            }
 
-            # aether-files
-            files_dest = os.path.join(target_dir, "usr/lib/aether/files")
-            os.makedirs(files_dest, exist_ok=True)
-            files_app_src = os.path.join(apps_src, "aether-files")
-            if os.path.exists(files_app_src):
-                shutil.copytree(files_app_src, files_dest, dirs_exist_ok=True)
-                shutil.copy2(os.path.join(files_app_src, "file_manager.py"), os.path.join(bin_dest, "aether-files"))
-                d_file_files = os.path.join(files_app_src, "aether-files.desktop")
-                if os.path.exists(d_file_files):
-                    shutil.copy2(d_file_files, os.path.join(target_dir, "usr/share/applications"))
+            for app_dir_name, entry_py in app_entry_points.items():
+                app_src = os.path.join(apps_src, app_dir_name)
+                if os.path.exists(app_src):
+                    app_dest_dir = os.path.join(target_dir, "usr/lib/aether", app_dir_name.replace("aether-", ""))
+                    os.makedirs(app_dest_dir, exist_ok=True)
+                    shutil.copytree(app_src, app_dest_dir, dirs_exist_ok=True)
 
-            # aether-software
-            soft_dest = os.path.join(target_dir, "usr/lib/aether/software")
-            os.makedirs(soft_dest, exist_ok=True)
-            soft_app_src = os.path.join(apps_src, "aether-software")
-            if os.path.exists(soft_app_src):
-                shutil.copytree(soft_app_src, soft_dest, dirs_exist_ok=True)
-                shutil.copy2(os.path.join(soft_app_src, "software_hub.py"), os.path.join(bin_dest, "aether-software"))
-                d_file_soft = os.path.join(soft_app_src, "aether-software.desktop")
-                if os.path.exists(d_file_soft):
-                    shutil.copy2(d_file_soft, os.path.join(target_dir, "usr/share/applications"))
+                    entry_path = os.path.join(app_src, entry_py)
+                    if os.path.exists(entry_path):
+                        dest_bin = os.path.join(bin_dest, app_dir_name)
+                        shutil.copy2(entry_path, dest_bin)
+                        os.chmod(dest_bin, 0o755)
 
-            # aether-updater
-            upd_dest = os.path.join(target_dir, "usr/lib/aether/updater")
-            os.makedirs(upd_dest, exist_ok=True)
-            upd_app_src = os.path.join(apps_src, "aether-updater")
-            if os.path.exists(upd_app_src):
-                shutil.copytree(upd_app_src, upd_dest, dirs_exist_ok=True)
-                shutil.copy2(os.path.join(upd_app_src, "updater_app.py"), os.path.join(bin_dest, "aether-updater"))
-                d_file_upd = os.path.join(upd_app_src, "aether-updater.desktop")
-                if os.path.exists(d_file_upd):
-                    shutil.copy2(d_file_upd, os.path.join(target_dir, "usr/share/applications"))
+                    desktop_path = os.path.join(app_src, f"{app_dir_name}.desktop")
+                    if os.path.exists(desktop_path):
+                        shutil.copy2(desktop_path, os.path.join(target_dir, "usr/share/applications"))
 
         # Installer engine & UI in /usr/lib/aether/installer and /usr/bin/aether-installer
         installer_src = os.path.join(REPO_ROOT, "installer")
@@ -318,16 +322,12 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             if os.path.exists(d_file_inst):
                 shutil.copy2(d_file_inst, os.path.join(target_dir, "usr/share/applications"))
 
-        # CLI distro tool & security-audit in /usr/bin
-        distro_cli_src = os.path.join(REPO_ROOT, "scripts/distro")
-        if os.path.exists(distro_cli_src):
-            shutil.copy2(distro_cli_src, os.path.join(bin_dest, "distro"))
-            os.chmod(os.path.join(bin_dest, "distro"), 0o755)
-
-        sec_audit_src = os.path.join(REPO_ROOT, "scripts/distro-security-audit")
-        if os.path.exists(sec_audit_src):
-            shutil.copy2(sec_audit_src, os.path.join(bin_dest, "distro-security-audit"))
-            os.chmod(os.path.join(bin_dest, "distro-security-audit"), 0o755)
+        # CLI distro tools in /usr/bin
+        for tool_name in ["distro", "distro-security-audit", "distro-dev"]:
+            t_src = os.path.join(REPO_ROOT, f"scripts/{tool_name}")
+            if os.path.exists(t_src):
+                shutil.copy2(t_src, os.path.join(bin_dest, tool_name))
+                os.chmod(os.path.join(bin_dest, tool_name), 0o755)
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Calendar
+GenericName=Calendar & Agenda
+Comment=Manage appointments, schedules, and events
+Exec=aether-calendar
+Icon=x-office-calendar
+Terminal=false
+Categories=Utility;Calendar;Office;
+Keywords=calendar;events;agenda;schedule;date;
+StartupNotify=true

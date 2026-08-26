@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Camera
+GenericName=Webcam & Camera Viewer
+Comment=Take photos and preview webcam video stream
+Exec=aether-camera
+Icon=camera-web
+Terminal=false
+Categories=AudioVideo;Video;Recorder;
+Keywords=camera;webcam;video;photo;snapshot;
+StartupNotify=true

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Document Viewer
+GenericName=PDF & Document Reader
+Comment=Read and search PDF and PostScript documents
+Exec=aether-pdf %F
+Icon=org.gnome.Evince
+Terminal=false
+Categories=Office;Viewer;Graphics;
+MimeType=application/pdf;application/x-bzpdf;application/x-gzpdf;application/x-xzpdf;application/postscript;
+StartupNotify=true

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Calculator
+GenericName=Calculator
+Comment=Perform arithmetic and scientific calculations
+Exec=aether-calc
+Icon=accessories-calculator
+Terminal=false
+Categories=Utility;Calculator;
+Keywords=calculation;arithmetic;math;scientific;
+StartupNotify=true

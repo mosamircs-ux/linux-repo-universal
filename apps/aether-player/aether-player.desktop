@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Media Player
+GenericName=Audio & Video Player
+Comment=Play movies, videos, and music files
+Exec=aether-player %F
+Icon=multimedia-video-player
+Terminal=false
+Categories=AudioVideo;Player;Audio;Video;
+MimeType=video/mp4;video/x-matroska;video/webm;audio/mpeg;audio/x-flac;audio/ogg;audio/wav;
+StartupNotify=true

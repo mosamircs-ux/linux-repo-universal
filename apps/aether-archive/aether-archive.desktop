@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Archive Manager
+GenericName=Archive Manager
+Comment=Create, extract, and browse compressed archive files
+Exec=aether-archive %F
+Icon=org.gnome.FileRoller
+Terminal=false
+Categories=Utility;Archiving;Compression;
+MimeType=application/zip;application/x-tar;application/x-compressed-tar;application/x-xz;application/x-7z-compressed;
+StartupNotify=true

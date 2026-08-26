@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Image Viewer
+GenericName=Image Viewer
+Comment=View, zoom, and rotate digital photos and images
+Exec=aether-image %F
+Icon=multimedia-photo-viewer
+Terminal=false
+Categories=Graphics;Viewer;
+MimeType=image/png;image/jpeg;image/webp;image/svg+xml;image/gif;image/bmp;image/tiff;
+StartupNotify=true

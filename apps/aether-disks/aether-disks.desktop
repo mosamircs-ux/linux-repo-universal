@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Disks
+GenericName=Disk Utility & Partition Manager
+Comment=Manage storage drives, view SMART health, and format partitions
+Exec=aether-disks
+Icon=org.gnome.DiskUtility
+Terminal=false
+Categories=System;Utility;
+Keywords=disks;drives;harddrive;ssd;partition;format;mount;
+StartupNotify=true

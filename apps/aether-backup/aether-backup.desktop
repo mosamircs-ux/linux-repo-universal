@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Backup & Restore
+GenericName=System Backup & Snapshots
+Comment=Create Btrfs snapshots and restore previous system points
+Exec=aether-backup
+Icon=org.gnome.DejaDup
+Terminal=false
+Categories=System;Utility;Archiving;
+Keywords=backup;restore;snapshot;btrfs;recovery;
+StartupNotify=true

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Terminal
+GenericName=Terminal Emulator
+Comment=Use the command line in a fast, customizable terminal
+Exec=aether-terminal
+Icon=utilities-terminal
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=shell;prompt;command;commandline;cmd;
+StartupNotify=true

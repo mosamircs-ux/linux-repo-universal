@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Disk Usage
+GenericName=Disk Usage Analyzer
+Comment=Inspect folder sizes and find large files on disk
+Exec=aether-usage
+Icon=org.gnome.baobab
+Terminal=false
+Categories=System;Utility;
+Keywords=disk;storage;usage;space;clean;folder;size;
+StartupNotify=true

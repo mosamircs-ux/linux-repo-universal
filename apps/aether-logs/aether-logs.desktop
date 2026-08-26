@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aether Logs
+GenericName=System Log Viewer
+Comment=Inspect systemd journal, kernel messages, and system diagnostics
+Exec=aether-logs
+Icon=org.gnome.Logs
+Terminal=false
+Categories=System;Monitor;
+Keywords=log;journal;systemd;dmesg;errors;debug;
+StartupNotify=true

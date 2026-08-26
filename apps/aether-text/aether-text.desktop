@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Text Editor
-GenericName=Text Editor
-Comment=Edit text, code, and documents
+Name[ar]=محرر نصوص أيثر
+GenericName=Text & Code Editor
+GenericName[ar]=محرر النصوص والشيفرات
+Comment=Lightweight tabbed text editor with syntax highlighting
+Comment[ar]=محرر نصوص خفيف الوزن مع تمييز الصيغة
 Exec=aether-text %F
-Icon=text-editor
+Icon=accessories-text-editor
 Terminal=false
 Categories=Utility;TextEditor;Development;
-MimeType=text/plain;text/x-python;text/x-c;text/x-c++;text/markdown;text/html;
+MimeType=text/plain;text/x-python;text/markdown;text/html;
 StartupNotify=true

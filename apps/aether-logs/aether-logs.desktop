@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Logs
+Name[ar]=سجلات أيثر
 GenericName=System Log Viewer
+GenericName[ar]=عارض سجلات النظام
 Comment=Inspect systemd journal, kernel messages, and system diagnostics
+Comment[ar]=فحص سجلات systemd ورسائل النواة وتشخيص النظام
 Exec=aether-logs
 Icon=org.gnome.Logs
 Terminal=false

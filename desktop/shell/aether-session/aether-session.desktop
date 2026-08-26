@@ -1,6 +1,8 @@
 [Desktop Entry]
 Name=AetherOS Desktop
+Name[ar]=سطح مكتب نظام أيثر
 Comment=Production-grade lightweight Wayland desktop session for AetherOS
+Comment[ar]=جلسة سطح مكتب ويلاند خفيفة واحترافية لنظام أيثر
 Exec=/usr/bin/start-aether-session
 TryExec=/usr/bin/wayfire
 Type=Application

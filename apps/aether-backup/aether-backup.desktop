@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Backup & Restore
+Name[ar]=النسخ الاحتياطي والاستعادة لأيثر
 GenericName=System Backup & Snapshots
+GenericName[ar]=النسخ الاحتياطي ولقطات النظام
 Comment=Create Btrfs snapshots and restore previous system points
+Comment[ar]=إنشاء لقطات Btrfs واستعادة نقاط النظام السابقة
 Exec=aether-backup
 Icon=org.gnome.DejaDup
 Terminal=false

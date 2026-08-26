@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Media Player
+Name[ar]=مشغل وسائط أيثر
 GenericName=Audio & Video Player
+GenericName[ar]=مشغل الصوت والفيديو
 Comment=Play movies, videos, and music files
+Comment[ar]=تشغيل ملفات الأفلام ومقاطع الفيديو والموسيقى
 Exec=aether-player %F
 Icon=multimedia-video-player
 Terminal=false

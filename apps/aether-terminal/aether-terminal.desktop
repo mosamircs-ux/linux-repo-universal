@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Terminal
+Name[ar]=طرفية أيثر
 GenericName=Terminal Emulator
-Comment=Use the command line in a fast, customizable terminal
+GenericName[ar]=محاكي الطرفية
+Comment=Fast and lightweight GPU-accelerated terminal emulator
+Comment[ar]=محاكي طرفية سريع وخفيف الوزن مدعوم بتسريع الرسوميات
 Exec=aether-terminal
 Icon=utilities-terminal
 Terminal=false
 Categories=System;TerminalEmulator;
-Keywords=shell;prompt;command;commandline;cmd;
+Keywords=terminal;shell;prompt;command;cli;
 StartupNotify=true

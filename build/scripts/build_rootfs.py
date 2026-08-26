@@ -326,7 +326,7 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
         doctor_tools = [
             "distro", "distro-security-audit", "distro-dev", "distro-recovery",
             "distro-network-doctor", "distro-audio-doctor",
-            "distro-bluetooth-doctor", "distro-printer-doctor"
+            "distro-bluetooth-doctor", "distro-printer-doctor", "distro-i18n-audit"
         ]
         for tool_name in doctor_tools:
             t_src = os.path.join(REPO_ROOT, f"scripts/{tool_name}")
@@ -334,12 +334,19 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 shutil.copy2(t_src, os.path.join(bin_dest, tool_name))
                 os.chmod(os.path.join(bin_dest, tool_name), 0o755)
 
-        # Stage system recovery defaults
+        # Stage system recovery defaults, i18n, and accessibility
         defaults_src = os.path.join(REPO_ROOT, "system/defaults")
         if os.path.exists(defaults_src):
             def_dest = os.path.join(target_dir, "usr/share/aether/defaults")
             os.makedirs(def_dest, exist_ok=True)
             shutil.copytree(defaults_src, def_dest, dirs_exist_ok=True)
+
+        for sys_sub in ["i18n", "accessibility"]:
+            sys_src = os.path.join(REPO_ROOT, f"system/{sys_sub}")
+            if os.path.exists(sys_src):
+                sys_dest = os.path.join(target_dir, "usr/lib/aether", sys_sub)
+                os.makedirs(sys_dest, exist_ok=True)
+                shutil.copytree(sys_src, sys_dest, dirs_exist_ok=True)
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

@@ -1,15 +1,13 @@
 [Desktop Entry]
 Type=Application
 Name=Install AetherOS
-GenericName=Operating System Installer
+Name[ar]=تثبيت نظام أيثر
+GenericName=System Installer
+GenericName[ar]=مثبت النظام
 Comment=Install AetherOS permanently to your computer
+Comment[ar]=تثبيت نظام تشغيل أيثر بشكل دائم على جهازك
 Exec=aether-installer --gui
-Icon=system-software-install
+Icon=system-installer
 Terminal=false
-Categories=System;Utility;
+Categories=System;
 StartupNotify=true
-Actions=cli-install;
-
-[Desktop Action cli-install]
-Name=Command Line Installer
-Exec=aether-installer --cli

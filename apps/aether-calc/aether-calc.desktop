@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Calculator
+Name[ar]=حاسبة أيثر
 GenericName=Calculator
-Comment=Perform arithmetic and scientific calculations
+GenericName[ar]=الآلة الحاسبة
+Comment=Perform basic and scientific calculations
+Comment[ar]=إجراء العمليات الحسابية الأساسية والعلمية
 Exec=aether-calc
 Icon=accessories-calculator
 Terminal=false
 Categories=Utility;Calculator;
-Keywords=calculation;arithmetic;math;scientific;
 StartupNotify=true

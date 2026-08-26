@@ -1,11 +1,14 @@
 [Desktop Entry]
-Name=Software
-Name[ar]=مركز البرامج
-Comment=Install and update applications on AetherOS
-Comment[ar]=تثبيت وتحديث التطبيقات على نظام أيثر
+Type=Application
+Name=Aether Software Center
+Name[ar]=مركز برمجيات أيثر
+GenericName=Software Center
+GenericName[ar]=مركز البرمجيات
+Comment=Discover, install, and manage applications
+Comment[ar]=استكشاف وتثبيت وإدارة التطبيقات والبرمجيات
 Exec=aether-software
 Icon=software-store
 Terminal=false
-Type=Application
 Categories=System;PackageManager;
+Keywords=software;store;apps;packages;flatpak;apt;
 StartupNotify=true

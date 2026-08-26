@@ -1,0 +1,61 @@
+/* AetherOS High Contrast Accessibility Theme (WCAG AAA 7:1 Ratio) */
+
+:root {
+    --hc-bg: #000000;
+    --hc-fg: #ffffff;
+    --hc-border: #ffffff;
+    --hc-focus: #ffff00;
+    --hc-accent: #00ffff;
+    --hc-selected-bg: #ffffff;
+    --hc-selected-fg: #000000;
+}
+
+* {
+    background-color: var(--hc-bg);
+    color: var(--hc-fg);
+    border-color: var(--hc-border);
+    outline-color: var(--hc-focus);
+    font-weight: bold;
+}
+
+window, dialog {
+    background-color: var(--hc-bg);
+    color: var(--hc-fg);
+    border: 3px solid var(--hc-border);
+}
+
+button {
+    background-color: var(--hc-bg);
+    color: var(--hc-fg);
+    border: 2px solid var(--hc-border);
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+button:hover, button:focus {
+    background-color: var(--hc-accent);
+    color: #000000;
+    border: 2px solid var(--hc-focus);
+    outline: 2px solid var(--hc-focus);
+}
+
+button:active {
+    background-color: var(--hc-fg);
+    color: var(--hc-bg);
+}
+
+entry, textview {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid var(--hc-border);
+}
+
+entry:focus {
+    border: 3px solid var(--hc-focus);
+    outline: 2px solid var(--hc-focus);
+}
+
+:selected {
+    background-color: var(--hc-selected-bg);
+    color: var(--hc-selected-fg);
+}

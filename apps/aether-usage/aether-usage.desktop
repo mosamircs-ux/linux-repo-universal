@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Disk Usage
+Name[ar]=استخدام القرص لأيثر
 GenericName=Disk Usage Analyzer
+GenericName[ar]=محلل استخدام القرص
 Comment=Inspect folder sizes and find large files on disk
+Comment[ar]=فحص أحجام المجلدات واكتشاف الملفات الكبيرة على القرص
 Exec=aether-usage
 Icon=org.gnome.baobab
 Terminal=false

@@ -1,20 +1,13 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Screenshot
+Name[ar]=لقطة شاشة أيثر
 GenericName=Screenshot Tool
-Comment=Capture full screen, active windows, or custom rectangular areas
-Exec=aether-screenshot --gui
+GenericName[ar]=أداة التقاط الشاشة
+Comment=Capture desktop, window, or rectangular region screenshots
+Comment[ar]=التقاط صور لسطح المكتب أو النوافذ أو منطقة محددة
+Exec=aether-screenshot
 Icon=applets-screenshooter
 Terminal=false
 Categories=Utility;Graphics;
-Keywords=screenshot;snapshot;capture;screen;printscreen;
 StartupNotify=true
-Actions=area;window;
-
-[Desktop Action area]
-Name=Capture Area
-Exec=aether-screenshot --area
-
-[Desktop Action window]
-Name=Capture Window
-Exec=aether-screenshot --window

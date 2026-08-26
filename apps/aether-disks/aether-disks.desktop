@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Disks
+Name[ar]=أقراص أيثر
 GenericName=Disk Utility & Partition Manager
+GenericName[ar]=أداة الأقراص وإدارة الأقسام
 Comment=Manage storage drives, view SMART health, and format partitions
+Comment[ar]=إدارة وحدات التخزين وفحص صحة القرص وتهيئة الأقسام
 Exec=aether-disks
 Icon=org.gnome.DiskUtility
 Terminal=false

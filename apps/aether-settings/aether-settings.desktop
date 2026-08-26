@@ -1,11 +1,13 @@
 [Desktop Entry]
-Name=Settings
-Name[ar]=الإعدادات
-Comment=Configure AetherOS system settings, display, audio, and language
-Comment[ar]=تخصيص إعدادات النظام والشاشات والصوت واللغة لنظام أيثر
-Exec=aether-settings
-Icon=preferences-system
-Terminal=false
 Type=Application
+Name=Aether Settings
+Name[ar]=إعدادات أيثر
+GenericName=System Settings
+GenericName[ar]=إعدادات النظام
+Comment=Configure system, hardware, and preferences
+Comment[ar]=تخصيص النظام والعتاد والتفضيلات
+Exec=aether-settings
+Icon=org.gnome.Settings
+Terminal=false
 Categories=Settings;HardwareSettings;DesktopSettings;
 StartupNotify=true

@@ -336,6 +336,10 @@ def main():
     p_rec.add_argument("rec_target", nargs="?", default=None, help="Snapshot label or restore target ID")
     p_rec.add_argument("--json", action="store_true", help="JSON output format")
 
+    # Internationalization Audit
+    p_i18n = subparsers.add_parser("i18n-audit", help="Run automated localization and RTL layout audit")
+    p_i18n.add_argument("--json", action="store_true", help="JSON output format")
+
     args = parser.parse_args()
 
     if args.command == "search":
@@ -486,6 +490,29 @@ def main():
             print(f"[{res['status']}] {res['message']}")
             for act in res["actions_taken"]:
                 print(f"  • {act}")
+    elif args.command == "i18n-audit":
+        i18n_mod = load_mod("distro_i18n_audit", "scripts/distro-i18n-audit")
+        auditor = i18n_mod.I18nAuditor()
+        rep = auditor.run_audit()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 80)
+            print("      AetherOS Internationalization & RTL Audit (distro i18n-audit)          ")
+            print("=" * 80)
+            print(f"Overall Localization Score: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Audited Launchers: {rep['desktop_files_count']} | Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 80)
+            for idx, (cid, cdata) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{cdata['status']}]"
+                print(f" {idx}. {badge:<8} {cdata['title']:<38} {cdata['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 80)
+                print("Actionable Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 80)
     elif args.command == "security-audit":
         audit_mod = load_mod("distro_security_audit", "scripts/distro-security-audit")
         auditor = audit_mod.SecurityAuditor()

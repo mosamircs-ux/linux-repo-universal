@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Document Viewer
+Name[ar]=عارض مستندات أيثر
 GenericName=PDF & Document Reader
-Comment=Read and search PDF and PostScript documents
+GenericName[ar]=قارئ مستندات PDF
+Comment=View PDF documents, presentations, and books
+Comment[ar]=عرض وتصفح مستندات ومطبوعات PDF والكتب
 Exec=aether-pdf %F
-Icon=org.gnome.Evince
+Icon=x-office-document
 Terminal=false
-Categories=Office;Viewer;Graphics;
-MimeType=application/pdf;application/x-bzpdf;application/x-gzpdf;application/x-xzpdf;application/postscript;
+Categories=Office;Viewer;
+MimeType=application/pdf;application/postscript;
 StartupNotify=true

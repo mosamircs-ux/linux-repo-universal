@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether System Monitor
+Name[ar]=مراقب نظام أيثر
 GenericName=System Monitor & Task Manager
+GenericName[ar]=مراقب النظام وإدارة المهام
 Comment=View system CPU, RAM, Network usage and manage active processes
+Comment[ar]=عرض استهلاك المعالج والذاكرة والشبكة وإدارة العمليات النشطة
 Exec=aether-monitor
 Icon=org.gnome.SystemMonitor
 Terminal=false

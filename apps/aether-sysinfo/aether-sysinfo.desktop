@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=About AetherOS
+Name[ar]=حول نظام أيثر
 GenericName=System Information
+GenericName[ar]=معلومات النظام
 Comment=View hardware specifications, OS edition, and system details
+Comment[ar]=عرض مواصفات العتاد وإصدار نظام التشغيل وتفاصيل النظام
 Exec=aether-sysinfo
 Icon=help-about
 Terminal=false

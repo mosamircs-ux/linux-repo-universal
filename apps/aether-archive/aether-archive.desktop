@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Archive Manager
+Name[ar]=مدير أرشيف أيثر
 GenericName=Archive Manager
+GenericName[ar]=مدير الأرشيف
 Comment=Create, extract, and browse compressed archive files
+Comment[ar]=إنشاء واستخراج واستعراض الملفات المضغوطة والأرشيف
 Exec=aether-archive %F
 Icon=org.gnome.FileRoller
 Terminal=false

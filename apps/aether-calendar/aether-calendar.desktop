@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Calendar
+Name[ar]=تقويم أيثر
 GenericName=Calendar & Agenda
-Comment=Manage appointments, schedules, and events
+GenericName[ar]=التقويم والمواعيد
+Comment=View calendar dates and manage daily agenda
+Comment[ar]=عرض التقويم وإدارة المواعيد اليومية
 Exec=aether-calendar
 Icon=x-office-calendar
 Terminal=false
-Categories=Utility;Calendar;Office;
-Keywords=calendar;events;agenda;schedule;date;
+Categories=Utility;Office;Calendar;
 StartupNotify=true

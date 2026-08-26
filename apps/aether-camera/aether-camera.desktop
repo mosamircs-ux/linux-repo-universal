@@ -1,8 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Camera
+Name[ar]=كاميرا أيثر
 GenericName=Webcam & Camera Viewer
+GenericName[ar]=عارض كاميرا الويب
 Comment=Take photos and preview webcam video stream
+Comment[ar]=التقاط الصور ومعاينة بث كاميرا الويب
 Exec=aether-camera
 Icon=camera-web
 Terminal=false

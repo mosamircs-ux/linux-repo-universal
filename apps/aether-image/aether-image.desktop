@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Aether Image Viewer
+Name[ar]=عارض صور أيثر
 GenericName=Image Viewer
-Comment=View, zoom, and rotate digital photos and images
+GenericName[ar]=عارض الصور
+Comment=Fast and lightweight image and photo viewer
+Comment[ar]=عارض صور فوتوغرافية سريع وخفيف
 Exec=aether-image %F
 Icon=multimedia-photo-viewer
 Terminal=false
 Categories=Graphics;Viewer;
-MimeType=image/png;image/jpeg;image/webp;image/svg+xml;image/gif;image/bmp;image/tiff;
+MimeType=image/png;image/jpeg;image/svg+xml;image/webp;image/gif;
 StartupNotify=true

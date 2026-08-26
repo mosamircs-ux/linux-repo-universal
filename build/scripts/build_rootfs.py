@@ -324,7 +324,7 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
 
         # CLI distro tools in /usr/bin
         doctor_tools = [
-            "distro", "distro-security-audit", "distro-dev",
+            "distro", "distro-security-audit", "distro-dev", "distro-recovery",
             "distro-network-doctor", "distro-audio-doctor",
             "distro-bluetooth-doctor", "distro-printer-doctor"
         ]
@@ -333,6 +333,13 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             if os.path.exists(t_src):
                 shutil.copy2(t_src, os.path.join(bin_dest, tool_name))
                 os.chmod(os.path.join(bin_dest, tool_name), 0o755)
+
+        # Stage system recovery defaults
+        defaults_src = os.path.join(REPO_ROOT, "system/defaults")
+        if os.path.exists(defaults_src):
+            def_dest = os.path.join(target_dir, "usr/share/aether/defaults")
+            os.makedirs(def_dest, exist_ok=True)
+            shutil.copytree(defaults_src, def_dest, dirs_exist_ok=True)
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

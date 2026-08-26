@@ -1,0 +1,7 @@
+# /etc/fstab: static file system information.
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+LABEL=AetherRoot /               btrfs   defaults,noatime,compress=zstd:3,subvol=@ 0       0
+LABEL=AetherRoot /home           btrfs   defaults,noatime,compress=zstd:3,subvol=@home 0       0
+LABEL=AetherRoot /.snapshots     btrfs   defaults,noatime,compress=zstd:3,subvol=@snapshots 0       0
+LABEL=AetherRoot /var/log        btrfs   defaults,noatime,compress=zstd:3,subvol=@var_log 0       0
+LABEL=ESP        /boot/efi       vfat    umask=0077      0       1

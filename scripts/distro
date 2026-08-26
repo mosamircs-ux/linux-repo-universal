@@ -330,6 +330,12 @@ def main():
     p_prndoc = subparsers.add_parser("printer-doctor", help="Diagnose CUPS, Avahi mDNS, USB/network printers & SANE scanners")
     p_prndoc.add_argument("--json", action="store_true", help="JSON output format")
 
+    # Recovery Manager
+    p_rec = subparsers.add_parser("recovery", help="Manage system snapshots, rollbacks, and boot/package repairs")
+    p_rec.add_argument("rec_action", nargs="?", default="status", choices=["status", "snapshot", "restore", "repair", "boot-repair", "package-repair"], help="Recovery action")
+    p_rec.add_argument("rec_target", nargs="?", default=None, help="Snapshot label or restore target ID")
+    p_rec.add_argument("--json", action="store_true", help="JSON output format")
+
     args = parser.parse_args()
 
     if args.command == "search":
@@ -435,7 +441,51 @@ def main():
                 print("Actionable Recommendations:")
                 for r in rep["recommendations"]:
                     print(f"  • {r}")
-            print("=" * 80)
+    elif args.command == "recovery":
+        rec_mod = load_mod("distro_recovery", "scripts/distro-recovery")
+        mgr = rec_mod.RecoveryManager()
+        if args.rec_action == "status":
+            st = mgr.status()
+            if args.json:
+                import json
+                print(json.dumps(st, indent=2))
+            else:
+                print("=" * 80)
+                print("            AetherOS System Recovery Manager (distro recovery status)         ")
+                print("=" * 80)
+                print(f"Root Filesystem: {st['filesystem'].upper()} ({st['snapshot_engine']})")
+                print(f"Total Recovery Points: {st['total_recovery_points']}")
+                print(f"Package Database: {'HEALTHY' if st['package_db_healthy'] else 'DEGRADED'}")
+                print(f"Bootloader State: {'HEALTHY' if st['bootloader_healthy'] else 'DEGRADED'}")
+                print("-" * 80)
+                print("Available Recovery Points / Snapshots:")
+                for idx, pt in enumerate(st["recovery_points"], 1):
+                    print(f" {idx}. {pt['id']:<38} [{pt['type']}] ({pt['timestamp']}) - {pt['size']}")
+                print("=" * 80)
+        elif args.rec_action == "snapshot":
+            ok, res = mgr.create_snapshot(args.rec_target or "manual")
+            print(f"[{'SUCCESS' if ok else 'ERROR'}] {res}")
+        elif args.rec_action == "restore":
+            if not args.rec_target:
+                print("Error: Specify snapshot ID or archive to restore.")
+            else:
+                ok, msg = mgr.restore(args.rec_target)
+                print(f"[{'SUCCESS' if ok else 'ERROR'}] {msg}")
+        elif args.rec_action == "package-repair":
+            res = mgr.package_repair()
+            print(f"[{res['status']}] {res['message']}")
+            for act in res["actions_taken"]:
+                print(f"  • {act}")
+        elif args.rec_action == "boot-repair":
+            res = mgr.boot_repair()
+            print(f"[{res['status']}] {res['message']}")
+            for act in res["actions_taken"]:
+                print(f"  • {act}")
+        elif args.rec_action == "repair":
+            res = mgr.repair()
+            print(f"[{res['status']}] {res['message']}")
+            for act in res["actions_taken"]:
+                print(f"  • {act}")
     elif args.command == "security-audit":
         audit_mod = load_mod("distro_security_audit", "scripts/distro-security-audit")
         auditor = audit_mod.SecurityAuditor()

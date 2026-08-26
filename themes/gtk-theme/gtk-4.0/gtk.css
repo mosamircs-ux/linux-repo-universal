@@ -1,19 +1,76 @@
-/* AetherOS GTK 4.0 & Libadwaita Theme Mapping */
-@import url("../gtk-3.0/gtk.css");
-
-window.messagedialog .response-area > button {
-    padding: 10px 24px;
-    border-radius: 8px;
+/* AetherOS Modern Slate GTK 4.0 Stylesheet */
+:root {
+  --aether-bg-dark: #0B0F19;
+  --aether-surface: #131B2E;
+  --aether-surface-elevated: #1E293B;
+  --aether-border: rgba(255, 255, 255, 0.08);
+  --aether-border-focus: #00D2FF;
+  --aether-accent: #00D2FF;
+  --aether-accent-hover: #38BDF8;
+  --aether-indigo: #6366F1;
+  --aether-fg: #F8FAFC;
+  --aether-fg-muted: #94A3B8;
+  --aether-danger: #EF4444;
+  --aether-success: #10B981;
+  --aether-warning: #F59E0B;
 }
 
-card {
-    background-color: #131B2E;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+window, .background {
+  background-color: var(--aether-bg-dark);
+  color: var(--aether-fg);
+  font-family: 'Inter', 'Cairo', 'Tajawal', sans-serif;
 }
 
-card:hover {
-    border-color: rgba(0, 210, 255, 0.3);
+headerbar {
+  background-color: var(--aether-surface);
+  border-bottom: 1px solid var(--aether-border);
+  min-height: 48px;
+  padding: 0 8px;
+}
+
+button {
+  background-color: var(--aether-surface-elevated);
+  color: var(--aether-fg);
+  border: 1px solid var(--aether-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  transition: all 180ms ease-in-out;
+}
+
+button:hover {
+  background-color: #2D3748;
+  border-color: var(--aether-accent);
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+
+button.suggested-action {
+  background: linear-gradient(135deg, #00D2FF 0%, #3B82F6 100%);
+  color: #0B0F19;
+  font-weight: 600;
+  border: none;
+}
+
+entry, textview {
+  background-color: var(--aether-surface);
+  border: 1px solid var(--aether-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--aether-fg);
+}
+
+entry:focus {
+  border-color: var(--aether-border-focus);
+  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.25);
+}
+
+listview, .navigation-sidebar {
+  background-color: var(--aether-surface);
+  color: var(--aether-fg);
+  border-radius: 8px;
+}
+
+row:selected {
+  background: linear-gradient(90deg, rgba(0, 210, 255, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border-left: 3px solid var(--aether-accent);
+  color: #FFFFFF;
 }

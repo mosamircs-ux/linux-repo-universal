@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# AetherOS Hardware Information CLI Alias
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$SCRIPT_DIR/distro-hardware-info" "$@"

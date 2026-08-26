@@ -84,27 +84,135 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 if os.path.isfile(s_fp):
                     shutil.copy2(s_fp, sec_dest)
 
-    # 3. Kernel optimizations
+        # UDev Hardware Rules
+        udev_dest = os.path.join(target_dir, "etc/udev/rules.d")
+        os.makedirs(udev_dest, exist_ok=True)
+        udev_src = os.path.join(sys_src, "udev")
+        if os.path.exists(udev_src):
+            for item in os.listdir(udev_src):
+                u_fp = os.path.join(udev_src, item)
+                if os.path.isfile(u_fp):
+                    shutil.copy2(u_fp, udev_dest)
+
+    # 3. Kernel optimizations & drivers
     kernel_src = os.path.join(REPO_ROOT, "kernel")
     if os.path.exists(kernel_src):
-        print("[RootFS] Staging kernel optimizations...")
+        print("[RootFS] Staging kernel optimizations, modprobe and module configs...")
+        # sysctl
         sysctl_dest = os.path.join(target_dir, "etc/sysctl.d")
         os.makedirs(sysctl_dest, exist_ok=True)
         sysctl_src = os.path.join(kernel_src, "sysctl.d/99-aether-performance.conf")
         if os.path.exists(sysctl_src):
             shutil.copy2(sysctl_src, sysctl_dest)
 
-    # 4. Themes, Artwork, Fonts (for GUI profiles)
+        # modprobe.d
+        modprobe_dest = os.path.join(target_dir, "etc/modprobe.d")
+        os.makedirs(modprobe_dest, exist_ok=True)
+        modprobe_src = os.path.join(kernel_src, "modprobe.d")
+        if os.path.exists(modprobe_src):
+            for item in os.listdir(modprobe_src):
+                m_fp = os.path.join(modprobe_src, item)
+                if os.path.isfile(m_fp):
+                    shutil.copy2(m_fp, modprobe_dest)
+
+        # modules-load.d
+        modload_dest = os.path.join(target_dir, "etc/modules-load.d")
+        os.makedirs(modload_dest, exist_ok=True)
+        modload_src = os.path.join(kernel_src, "modules-load.d")
+        if os.path.exists(modload_src):
+            for item in os.listdir(modload_src):
+                ml_fp = os.path.join(modload_src, item)
+                if os.path.isfile(ml_fp):
+                    shutil.copy2(ml_fp, modload_dest)
+
+        # Hardware detector library
+        hw_lib_dest = os.path.join(target_dir, "usr/lib/aetheros/kernel")
+        os.makedirs(hw_lib_dest, exist_ok=True)
+        hw_det_src = os.path.join(kernel_src, "hardware_detector.py")
+        if os.path.exists(hw_det_src):
+            shutil.copy2(hw_det_src, hw_lib_dest)
+
+    # 4. Install distro-hardware-info diagnostic CLI tool
+    bin_dest = os.path.join(target_dir, "usr/bin")
+    os.makedirs(bin_dest, exist_ok=True)
+    hw_info_bin = os.path.join(REPO_ROOT, "scripts/distro-hardware-info")
+    if os.path.exists(hw_info_bin):
+        shutil.copy2(hw_info_bin, os.path.join(bin_dest, "distro-hardware-info"))
+        shutil.copy2(hw_info_bin, os.path.join(bin_dest, "aether-hardware-info"))
+
+    # 5. Desktop Environment & Shell (for GUI profiles)
     if profile in ("live", "development", "installer"):
+        desktop_src = os.path.join(REPO_ROOT, "desktop")
+        if os.path.exists(desktop_src):
+            print("[RootFS] Staging Wayland compositor configs and modular shell...")
+            # Wayfire / Labwc configs
+            wf_dest = os.path.join(target_dir, "etc/wayfire")
+            labwc_dest = os.path.join(target_dir, "etc/labwc")
+            os.makedirs(wf_dest, exist_ok=True)
+            os.makedirs(labwc_dest, exist_ok=True)
+            
+            wf_src = os.path.join(desktop_src, "compositor/wayfire.ini")
+            if os.path.exists(wf_src):
+                shutil.copy2(wf_src, wf_dest)
+            labwc_src = os.path.join(desktop_src, "compositor/labwc.xml")
+            if os.path.exists(labwc_src):
+                shutil.copy2(labwc_src, labwc_dest)
+
+            # Shell widgets (/usr/lib/aether/shell)
+            shell_dest = os.path.join(target_dir, "usr/lib/aether/shell")
+            os.makedirs(shell_dest, exist_ok=True)
+            
+            # Map files
+            sh_mappings = [
+                ("shell/aether-dock/dock.py", "dock.py"),
+                ("shell/aether-topbar/topbar.py", "topbar.py"),
+                ("shell/aether-launcher/launcher.py", "launcher.py"),
+                ("shell/aether-quicksettings/quicksettings.py", "quicksettings.py"),
+                ("shell/aether-notifications/daemon.py", "notifications.py"),
+                ("shell/aether-notifications/daemon.py", "daemon.py"),
+                ("shell/aether-session/start-aether.sh", "start-aether.sh"),
+            ]
+            for rel_s, dest_name in sh_mappings:
+                s_fp = os.path.join(desktop_src, rel_s)
+                if os.path.exists(s_fp):
+                    shutil.copy2(s_fp, os.path.join(shell_dest, dest_name))
+
+            # Install aether-session in /usr/bin
+            shutil.copy2(os.path.join(desktop_src, "shell/aether-session/start-aether.sh"), os.path.join(bin_dest, "aether-session"))
+            
+            # Session desktop file in /usr/share/wayland-sessions
+            ws_dest = os.path.join(target_dir, "usr/share/wayland-sessions")
+            os.makedirs(ws_dest, exist_ok=True)
+            sess_src = os.path.join(desktop_src, "shell/aether-session/aether-session.desktop")
+            if os.path.exists(sess_src):
+                shutil.copy2(sess_src, ws_dest)
+
+        # GTK Themes & Artwork
         themes_src = os.path.join(REPO_ROOT, "themes")
         if os.path.exists(themes_src):
-            print("[RootFS] Staging desktop artwork and themes...")
+            print("[RootFS] Staging GTK stylesheets and wallpapers...")
             bg_dest = os.path.join(target_dir, "usr/share/backgrounds/aether")
             os.makedirs(bg_dest, exist_ok=True)
             for wall in ["wallpaper-solstice-dark.svg", "wallpaper-solstice-light.svg", "logo.svg"]:
                 w_src = os.path.join(themes_src, "artwork", wall)
                 if os.path.exists(w_src):
                     shutil.copy2(w_src, bg_dest)
+
+            # GTK 3 & 4 Dark Theme
+            gtk3_dark = os.path.join(target_dir, "usr/share/themes/Aether-Dark/gtk-3.0")
+            gtk4_dark = os.path.join(target_dir, "usr/share/themes/Aether-Dark/gtk-4.0")
+            os.makedirs(gtk3_dark, exist_ok=True)
+            os.makedirs(gtk4_dark, exist_ok=True)
+            shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-3.0/gtk.css"), gtk3_dark)
+            shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-4.0/gtk.css"), gtk4_dark)
+
+            # GTK 3 & 4 Light Theme
+            gtk3_light = os.path.join(target_dir, "usr/share/themes/Aether-Light/gtk-3.0")
+            gtk4_light = os.path.join(target_dir, "usr/share/themes/Aether-Light/gtk-4.0")
+            os.makedirs(gtk3_light, exist_ok=True)
+            os.makedirs(gtk4_light, exist_ok=True)
+            shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-3.0/gtk-light.css"), os.path.join(gtk3_light, "gtk.css"))
+            shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-4.0/gtk-light.css"), os.path.join(gtk4_light, "gtk.css"))
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

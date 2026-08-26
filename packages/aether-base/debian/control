@@ -20,7 +20,19 @@ Depends: ${misc:Depends},
          zstd,
          sudo,
          curl,
-         ca-certificates
+         ca-certificates,
+         linux-firmware,
+         intel-microcode,
+         amd64-microcode,
+         sof-firmware,
+         alsa-ucm-conf,
+         wireless-regdb,
+         upower,
+         ipp-usb,
+         sane-airscan,
+         pciutils,
+         usbutils
 Description: AetherOS base system configuration metapackage
  This package provides core system configurations, kernel sysctl tuning,
- zram swap defaults, udev rules, and standard security parameters.
+ driver modprobe settings, hardware udev rules, upstream firmware integration,
+ zram swap defaults, and distro-hardware-info diagnostic tools.

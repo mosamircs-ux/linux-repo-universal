@@ -1,0 +1,73 @@
+/* AetherOS Crisp Ceramic Light GTK 3.0 Theme */
+@define-color aether_bg_light #F8FAFC;
+@define-color aether_surface #FFFFFF;
+@define-color aether_surface_elevated #F1F5F9;
+@define-color aether_border rgba(0, 0, 0, 0.08);
+@define-color aether_border_focus #0284C7;
+@define-color aether_accent #0284C7;
+@define-color aether_accent_hover #0369A1;
+@define-color aether_indigo #4F46E5;
+@define-color aether_fg #0F172A;
+@define-color aether_fg_muted #64748B;
+@define-color aether_danger #DC2626;
+@define-color aether_success #059669;
+@define-color aether_warning #D97706;
+
+window, .background {
+    background-color: @aether_bg_light;
+    color: @aether_fg;
+    font-family: 'Inter', 'Cairo', 'Tajawal', sans-serif;
+}
+
+headerbar, .titlebar {
+    background-color: @aether_surface;
+    border-bottom: 1px solid @aether_border;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-height: 48px;
+    padding: 0 8px;
+}
+
+headerbar .title {
+    font-weight: 600;
+    color: @aether_fg;
+}
+
+button {
+    background-color: @aether_surface;
+    color: @aether_fg;
+    border: 1px solid @aether_border;
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: all 180ms ease-in-out;
+}
+
+button:hover {
+    background-color: @aether_surface_elevated;
+    border-color: @aether_accent;
+}
+
+button.suggested-action {
+    background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    border: none;
+}
+
+entry, textview {
+    background-color: @aether_surface;
+    border: 1px solid @aether_border;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: @aether_fg;
+}
+
+entry:focus {
+    border-color: @aether_border_focus;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+}
+
+row:selected {
+    background: linear-gradient(90deg, rgba(2, 132, 199, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%);
+    border-left: 3px solid @aether_accent;
+    color: @aether_fg;
+}

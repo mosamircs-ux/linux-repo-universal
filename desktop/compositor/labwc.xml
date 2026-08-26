@@ -1,23 +1,48 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+<!-- AetherOS Lightweight Stacking Wayland Compositor Configuration (Labwc) -->
 <labwc_config>
   <core>
     <decoration>server</decoration>
     <gap>4</gap>
   </core>
+
+  <windowRules>
+    <windowRule identifier="aether-topbar" serverDecoration="no" layer="top" />
+    <windowRule identifier="aether-dock" serverDecoration="no" layer="top" />
+    <windowRule identifier="aether-quicksettings" serverDecoration="no" layer="overlay" />
+    <windowRule identifier="aether-launcher" serverDecoration="no" layer="overlay" />
+  </windowRules>
+
   <keyboard>
     <default />
-    <keybind key="W-t"><action name="Execute" command="aether-terminal" /></keybind>
+    <!-- App & Shell Bindings -->
     <keybind key="W-a"><action name="Execute" command="python3 /usr/lib/aether/shell/launcher.py" /></keybind>
+    <keybind key="W-Super_L"><action name="Execute" command="python3 /usr/lib/aether/shell/launcher.py" /></keybind>
+    <keybind key="W-t"><action name="Execute" command="aether-terminal || foot" /></keybind>
     <keybind key="W-e"><action name="Execute" command="thunar" /></keybind>
     <keybind key="W-i"><action name="Execute" command="aether-settings" /></keybind>
-    <keybind key="W-q"><action name="Close" /></keybind>
-    <keybind key="A-F4"><action name="Close" /></keybind>
+    <keybind key="W-s"><action name="Execute" command="python3 /usr/lib/aether/shell/quicksettings.py" /></keybind>
+    <keybind key="W-l"><action name="Execute" command="swaylock -f -c 0B0F19" /></keybind>
+    <keybind key="Print"><action name="Execute" command="grim -g &quot;$(slurp)&quot; ~/Pictures/Screenshots/screenshot_$(date +'%Y%m%d_%H%M%S').png" /></keybind>
+    
+    <!-- Window Snapping & Management -->
+    <keybind key="W-Up"><action name="ToggleMaximize" /></keybind>
     <keybind key="W-Left"><action name="SnapToEdge" direction="left" /></keybind>
     <keybind key="W-Right"><action name="SnapToEdge" direction="right" /></keybind>
-    <keybind key="W-Up"><action name="ToggleMaximize" /></keybind>
+    <keybind key="W-q"><action name="Close" /></keybind>
+    <keybind key="A-F4"><action name="Close" /></keybind>
+    <keybind key="A-Tab"><action name="NextWindow" /></keybind>
+
+    <!-- Workspaces -->
+    <keybind key="W-C-Left"><action name="GoToDesktop" to="left" /></keybind>
+    <keybind key="W-C-Right"><action name="GoToDesktop" to="right" /></keybind>
+    <keybind key="W-1"><action name="GoToDesktop" to="1" /></keybind>
+    <keybind key="W-2"><action name="GoToDesktop" to="2" /></keybind>
+    <keybind key="W-3"><action name="GoToDesktop" to="3" /></keybind>
+    <keybind key="W-4"><action name="GoToDesktop" to="4" /></keybind>
   </keyboard>
-  <theme>
-    <name>Aether-Dark</name>
-    <cornerRadius>10</cornerRadius>
-  </theme>
+
+  <mouse>
+    <default />
+  </mouse>
 </labwc_config>

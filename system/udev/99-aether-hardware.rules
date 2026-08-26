@@ -1,16 +1,45 @@
-# AetherOS Hardware Access and Privilege Rules
+# AetherOS Hardware Access, Privilege and Device Management Rules
 # /etc/udev/rules.d/99-aether-hardware.rules
 
-# Allow desktop users in 'video' and 'input' groups to adjust backlight brightness without sudo
+# 1. Backlight & Keyboard LED Brightness Controls (Desktop users without sudo)
 ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod a+w /sys/class/backlight/%k/brightness"
 ACTION=="add", SUBSYSTEM=="leds", KERNEL=="*::kbd_backlight", RUN+="/bin/chmod a+w /sys/class/leds/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="*::capslock", RUN+="/bin/chmod a+w /sys/class/leds/%k/brightness"
 
-# Direct Rendering Manager (DRM) / GPU Render nodes permissions
+# 2. Direct Rendering Manager (DRM) / GPU Render Nodes
 KERNEL=="renderD*", GROUP="render", MODE="0666"
+KERNEL=="card*", GROUP="video", MODE="0660"
 
-# Low latency audio access
+# 3. Low-Latency Audio Timers & Sound Devices
 KERNEL=="rtc0", GROUP="audio", MODE="0660"
 KERNEL=="hpet", GROUP="audio", MODE="0660"
+SUBSYSTEM=="sound", GROUP="audio", MODE="0660"
 
-# Game controllers and VR devices (evdev)
+# 4. Input Subsystem & Virtual Input (uinput for Wayland remote/shortcuts)
 KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+
+# 5. Game Controllers & Gamepads (PlayStation, Xbox, Nintendo, Steam, Generic)
+# PlayStation DualShock 4 / DualSense 5 (USB & Bluetooth)
+KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="05c4|09cc|0ce6|0df2", MODE="0666", TAG+="uaccess"
+# Xbox 360, Xbox One, Xbox Series X/S (USB & Wireless Dongle)
+KERNEL=="hidraw*", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="028e|02d1|02dd|02e3|02ea|0b00|0b05|0b12|0b13", MODE="0666", TAG+="uaccess"
+# Nintendo Switch Pro Controller / Joy-Cons (USB & Bluetooth)
+KERNEL=="hidraw*", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="2006|2007|2009|200e", MODE="0666", TAG+="uaccess"
+# Valve Steam Controller / Deck Controller
+KERNEL=="hidraw*", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1102|1142|1205", MODE="0666", TAG+="uaccess"
+# Generic USB Joysticks and Gamepads
+SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", GROUP="input", MODE="0666", TAG+="uaccess"
+
+# 6. Graphics Tablets (Wacom, Huion, XP-Pen)
+SUBSYSTEM=="input", ATTRS{idVendor}=="056a", ENV{ID_INPUT_TABLET}=="1", GROUP="input", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="256c|5543|056a", MODE="0666", TAG+="uaccess"
+
+# 7. Driverless USB Printing (IPP-over-USB)
+ACTION=="add", SUBSYSTEM=="usb", ATTR{bInterfaceClass}=="07", ATTR{bInterfaceSubClass}=="01", ATTR{bInterfaceProtocol}=="04", TAG+="systemd", ENV{SYSTEMD_WANTS}+="ipp-usb.service"
+
+# 8. Scanners & Multifunction Devices (SANE USB scanning)
+ENV{libsane_matched}=="yes", GROUP="scanner", MODE="0664", TAG+="uaccess"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{bDeviceClass}=="00|ff", ATTRS{bDeviceSubClass}=="00|ff", TAG+="uaccess"
+
+# 9. USB-C Power Delivery & Alternate Modes (DisplayPort over Type-C)
+SUBSYSTEM=="typec", TAG+="uaccess"

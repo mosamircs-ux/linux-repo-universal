@@ -1,0 +1,69 @@
+/* AetherOS Crisp Ceramic Light GTK 4.0 Stylesheet */
+:root {
+  --aether-bg-light: #F8FAFC;
+  --aether-surface: #FFFFFF;
+  --aether-surface-elevated: #F1F5F9;
+  --aether-border: rgba(0, 0, 0, 0.08);
+  --aether-border-focus: #0284C7;
+  --aether-accent: #0284C7;
+  --aether-accent-hover: #0369A1;
+  --aether-indigo: #4F46E5;
+  --aether-fg: #0F172A;
+  --aether-fg-muted: #64748B;
+  --aether-danger: #DC2626;
+  --aether-success: #059669;
+  --aether-warning: #D97706;
+}
+
+window, .background {
+  background-color: var(--aether-bg-light);
+  color: var(--aether-fg);
+  font-family: 'Inter', 'Cairo', 'Tajawal', sans-serif;
+}
+
+headerbar {
+  background-color: var(--aether-surface);
+  border-bottom: 1px solid var(--aether-border);
+  min-height: 48px;
+  padding: 0 8px;
+}
+
+button {
+  background-color: var(--aether-surface);
+  color: var(--aether-fg);
+  border: 1px solid var(--aether-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  transition: all 180ms ease-in-out;
+}
+
+button:hover {
+  background-color: var(--aether-surface-elevated);
+  border-color: var(--aether-accent);
+}
+
+button.suggested-action {
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  border: none;
+}
+
+entry, textview {
+  background-color: var(--aether-surface);
+  border: 1px solid var(--aether-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--aether-fg);
+}
+
+entry:focus {
+  border-color: var(--aether-border-focus);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+}
+
+row:selected {
+  background: linear-gradient(90deg, rgba(2, 132, 199, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%);
+  border-left: 3px solid var(--aether-accent);
+  color: var(--aether-fg);
+}

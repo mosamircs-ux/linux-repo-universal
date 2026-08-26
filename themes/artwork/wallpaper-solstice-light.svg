@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2160" width="3840" height="2160">
+  <defs>
+    <linearGradient id="bgLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="wave2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.20"/>
+    </linearGradient>
+    <linearGradient id="coreGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#00d2ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0284c7" flood-opacity="0.20"/>
+    </filter>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="3840" height="2160" fill="url(#bgLight)"/>
+
+  <!-- Fluid Geometric Shapes -->
+  <path d="M0,800 C960,400 1440,1200 2400,900 C3360,600 3840,1100 3840,1100 L3840,2160 L0,2160 Z" fill="url(#wave1)"/>
+  <path d="M0,1300 C720,1100 1680,1700 2640,1400 C3600,1100 3840,1600 3840,1600 L3840,2160 L0,2160 Z" fill="url(#wave2)"/>
+
+  <!-- Stylized AetherOS Solstice Emblem (Center Right) -->
+  <g transform="translate(2400, 800)" filter="url(#shadow)">
+    <circle cx="200" cy="200" r="180" fill="url(#coreGlow)" opacity="0.15"/>
+    <polygon points="200,40 340,280 60,280" fill="none" stroke="url(#coreGlow)" stroke-width="12" stroke-linejoin="round"/>
+    <circle cx="200" cy="180" r="40" fill="url(#coreGlow)"/>
+  </g>
+</svg>

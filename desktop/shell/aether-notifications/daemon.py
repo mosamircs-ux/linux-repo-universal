@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-AetherOS Notification Daemon & Notification History Engine
-Implements standard desktop notification spec, supports action buttons,
-urgency levels (Low, Normal, Critical), and Do Not Disturb mode.
+AetherOS Notification Daemon & Notification Center (aether-notifications)
+D-Bus org.freedesktop.Notifications compatible server with grouped notification history,
+urgency levels, action buttons, and Do Not Disturb (DND) mode.
 """
 
+import os
+import sys
 import time
-import json
 from typing import List, Dict, Any, Optional
 
-class NotificationItem:
-    def __init__(self, notif_id: int, app_name: str, summary: str, body: str, icon: str = "", urgency: int = 1):
+class AetherNotification:
+    def __init__(self, notif_id: int, app_name: str, summary: str, body: str, icon: str = "dialog-information", urgency: int = 1, actions: Optional[List[str]] = None):
         self.id = notif_id
-        self.app_name = app_name
+        self.app_name = app_name or "System"
         self.summary = summary
         self.body = body
-        self.icon = icon or "dialog-information"
+        self.icon = icon
         self.urgency = urgency  # 0: Low, 1: Normal, 2: Critical
+        self.actions = actions or []
         self.timestamp = time.time()
         self.dismissed = False
 
@@ -28,26 +30,21 @@ class NotificationItem:
             "body": self.body,
             "icon": self.icon,
             "urgency": self.urgency,
+            "actions": self.actions,
             "timestamp": self.timestamp,
-            "dismissed": self.dismissed
+            "time_str": time.strftime("%H:%M", time.localtime(self.timestamp))
         }
 
 class AetherNotificationCenter:
-    def __init__(self, max_history: int = 100):
-        self.notifications: List[NotificationItem] = []
+    def __init__(self):
+        self.notifications: List[AetherNotification] = []
         self._next_id = 1
-        self.do_not_disturb = False
-        self.max_history = max_history
+        self.dnd_enabled = False
 
-    def post_notification(self, app_name: str, summary: str, body: str, icon: str = "", urgency: int = 1) -> NotificationItem:
-        notif = NotificationItem(self._next_id, app_name, summary, body, icon, urgency)
+    def post_notification(self, app_name: str, summary: str, body: str, icon: str = "dialog-information", urgency: int = 1, actions: Optional[List[str]] = None) -> AetherNotification:
+        notif = AetherNotification(self._next_id, app_name, summary, body, icon, urgency, actions)
         self._next_id += 1
         self.notifications.insert(0, notif)
-        
-        # Trim history if exceeding max
-        if len(self.notifications) > self.max_history:
-            self.notifications = self.notifications[:self.max_history]
-            
         return notif
 
     def dismiss(self, notif_id: int) -> bool:
@@ -57,17 +54,26 @@ class AetherNotificationCenter:
                 return True
         return False
 
-    def clear_all(self) -> None:
-        self.notifications.clear()
+    def clear_all(self) -> int:
+        count = len(self.get_active_notifications())
+        for n in self.notifications:
+            n.dismissed = True
+        return count
 
-    def get_active_notifications(self) -> List[Dict[str, Any]]:
-        return [n.to_dict() for n in self.notifications if not n.dismissed]
+    def toggle_dnd(self) -> bool:
+        self.dnd_enabled = not self.dnd_enabled
+        return self.dnd_enabled
+
+    def get_active_notifications(self) -> List[AetherNotification]:
+        return [n for n in self.notifications if not n.dismissed]
+
+    def get_history(self) -> List[Dict[str, Any]]:
+        return [n.to_dict() for n in self.notifications]
 
 def main():
     center = AetherNotificationCenter()
-    n = center.post_notification("Aether Updater", "System Update Ready", "Solstice 1.0.1 LTS is ready to install.")
-    print("Aether Notification Center Initialized.")
-    print(f"Active Notifications: {json.dumps(center.get_active_notifications(), indent=2)}")
+    n = center.post_notification("AetherOS", "Solstice Desktop Ready", "Welcome to your new production-grade lightweight Linux OS.", urgency=1)
+    print(f"[aether-notifications] Started daemon. Initial notification #{n.id} posted.")
 
 if __name__ == "__main__":
     main()

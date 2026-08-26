@@ -1,0 +1,21 @@
+// ==============================================================================
+// AetherOS Unattended Security Updates Configuration
+// Path: /etc/apt/apt.conf.d/50unattended-upgrades
+// ==============================================================================
+
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+
+// Automatically reboot if required by kernel update (safely at 03:00 AM)
+Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+
+// Remove unused kernel and dependency packages
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+// Install on shutdown if system is powered off
+Unattended-Upgrade::InstallOnShutdown "false";

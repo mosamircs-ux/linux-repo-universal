@@ -1,0 +1,38 @@
+/* ==============================================================================
+ * AetherOS Polkit Authorization & Least-Privilege Rules
+ * Path: /etc/polkit-1/rules.d/10-aether-security.rules
+ * ============================================================================== */
+
+polkit.addRule(function(action, subject) {
+    // 1. Allow active console users in 'sudo' / 'wheel' group to manage network without root password
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") === 0 && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+
+    // 2. Allow active console users to mount removable drives (USB/SD) without password
+    if ((action.id === "org.freedesktop.udisks2.filesystem-mount" ||
+         action.id === "org.freedesktop.udisks2.filesystem-mount-other-seat" ||
+         action.id === "org.freedesktop.udisks2.encrypted-unlock") && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+
+    // 3. Allow active user to restart/poweroff/suspend from GUI session
+    if ((action.id === "org.freedesktop.login1.power-off" ||
+         action.id === "org.freedesktop.login1.reboot" ||
+         action.id === "org.freedesktop.login1.suspend" ||
+         action.id === "org.freedesktop.login1.hibernate") && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+
+    // 4. Require explicit administrator authentication for system settings, package installs, and firewall changes
+    if (action.id.indexOf("org.aetheros.settings.") === 0 ||
+        action.id.indexOf("org.debian.apt.") === 0 ||
+        action.id.indexOf("org.freedesktop.packagekit.") === 0) {
+        if (subject.isInGroup("sudo")) {
+            return polkit.Result.AUTH_ADMIN_KEEP;
+        }
+        return polkit.Result.NO;
+    }
+
+    return polkit.Result.NOT_HANDLED;
+});

@@ -1,0 +1,47 @@
+# ==============================================================================
+# AppArmor Profile for AetherOS Software Hub (aether-software)
+# Confines software catalog operations and isolates package manager executions
+# ==============================================================================
+
+#include <tunables/global>
+
+/usr/bin/aether-software {
+  #include <abstractions/base>
+  #include <abstractions/fonts>
+  #include <abstractions/freedesktop.org>
+  #include <abstractions/gnome>
+  #include <abstractions/python>
+  #include <abstractions/user-tmp>
+
+  # Binaries and libraries
+  /usr/bin/aether-software r,
+  /usr/lib/aether/software/** r,
+  /usr/lib/aether/software/**/*.py r,
+  /usr/bin/python3* ix,
+
+  # User data & history
+  owner @{HOME}/.local/share/aether/** rwk,
+  owner @{HOME}/.cache/aether/** rwk,
+
+  # APT and Flatpak read-only query access
+  /var/lib/dpkg/status r,
+  /var/lib/apt/lists/** r,
+  /var/cache/apt/** r,
+  /usr/bin/apt-cache ix,
+  /usr/bin/dpkg-query ix,
+  /usr/bin/flatpak ix,
+
+  # Privilege escalation for installation/removal
+  /usr/bin/pkexec Px,
+
+  # D-Bus IPC
+  #include <abstractions/dbus-session>
+
+  # Strict security denials
+  deny /etc/shadow* rw,
+  deny /etc/gshadow* rw,
+  deny /etc/sudoers* rw,
+  deny /boot/** rw,
+  deny /dev/mem rw,
+  deny /dev/kmem rw,
+}

@@ -1,0 +1,57 @@
+# ==============================================================================
+# AppArmor Profile for AetherOS Native File Manager (aether-files)
+# Restricts privileged system files while allowing broad user filesystem operations
+# ==============================================================================
+
+#include <tunables/global>
+
+/usr/bin/aether-files {
+  #include <abstractions/base>
+  #include <abstractions/fonts>
+  #include <abstractions/freedesktop.org>
+  #include <abstractions/gnome>
+  #include <abstractions/python>
+  #include <abstractions/user-tmp>
+
+  # Binaries and libraries
+  /usr/bin/aether-files r,
+  /usr/lib/aether/files/** r,
+  /usr/lib/aether/files/**/*.py r,
+  /usr/bin/python3* ix,
+
+  # User Home & Removable Media access
+  owner @{HOME}/** rwkl,
+  /media/** rwkl,
+  /run/media/** rwkl,
+  /mnt/** rwkl,
+  /tmp/** rwkl,
+
+  # Freedesktop Trash
+  owner @{HOME}/.local/share/Trash/** rwkl,
+
+  # System Mounts inspection
+  /proc/mounts r,
+  /proc/filesystems r,
+  /sys/block/** r,
+  /sys/devices/** r,
+
+  # Archive helpers
+  /usr/bin/zip ix,
+  /usr/bin/unzip ix,
+  /usr/bin/tar ix,
+  /usr/bin/gzip ix,
+  /usr/bin/xz ix,
+  /usr/bin/7z ix,
+
+  # D-Bus session
+  #include <abstractions/dbus-session>
+
+  # Strict security denials
+  deny /etc/shadow* rw,
+  deny /etc/gshadow* rw,
+  deny /etc/sudoers* rw,
+  deny /dev/kmem rw,
+  deny /dev/mem rw,
+  deny /dev/port rw,
+  deny /boot/efi/** w,
+}

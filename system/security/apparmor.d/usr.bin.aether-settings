@@ -1,0 +1,60 @@
+# ==============================================================================
+# AppArmor Profile for AetherOS System Settings (aether-settings)
+# Enforces least-privilege mandatory access control
+# ==============================================================================
+
+#include <tunables/global>
+
+/usr/bin/aether-settings {
+  #include <abstractions/base>
+  #include <abstractions/fonts>
+  #include <abstractions/freedesktop.org>
+  #include <abstractions/gnome>
+  #include <abstractions/python>
+  #include <abstractions/user-tmp>
+
+  # Application binaries & libraries
+  /usr/bin/aether-settings r,
+  /usr/lib/aether/settings/** r,
+  /usr/lib/aether/settings/**/*.py r,
+  /usr/bin/python3* ix,
+
+  # User settings and theme configuration
+  owner @{HOME}/.config/aether/ rw,
+  owner @{HOME}/.config/aether/** rwk,
+  owner @{HOME}/.config/gtk-3.0/** r,
+  owner @{HOME}/.config/gtk-4.0/** r,
+  owner @{HOME}/.config/dconf/user rw,
+
+  # System info inspection (read-only)
+  /etc/os-release r,
+  /etc/lsb-release r,
+  /etc/timezone r,
+  /etc/localtime r,
+  /etc/locale.gen r,
+  /etc/default/locale r,
+  /proc/cpuinfo r,
+  /proc/meminfo r,
+  /proc/uptime r,
+  /proc/version r,
+  /sys/devices/** r,
+  /sys/class/power_supply/** r,
+  /sys/class/drm/** r,
+  /sys/class/net/** r,
+
+  # Privilege escalation via Polkit
+  /usr/bin/pkexec Px,
+  /usr/bin/polkit-agent-helper-1 ix,
+
+  # D-Bus IPC
+  #include <abstractions/dbus-session>
+  #include <abstractions/dbus-accessibility>
+
+  # Deny arbitrary root access and sensitive kernel raw files
+  deny /boot/** rw,
+  deny /dev/mem rw,
+  deny /dev/kmem rw,
+  deny /etc/shadow* rw,
+  deny /etc/gshadow* rw,
+  deny /root/** rw,
+}

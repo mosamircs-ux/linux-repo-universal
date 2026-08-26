@@ -17,11 +17,14 @@ import argparse
 import subprocess
 import importlib.util
 
+from importlib.machinery import SourceFileLoader
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def load_mod(name, rel_path):
     fpath = os.path.join(REPO_ROOT, rel_path)
-    spec = importlib.util.spec_from_file_location(name, fpath)
+    loader = SourceFileLoader(name, fpath)
+    spec = importlib.util.spec_from_file_location(name, fpath, loader=loader)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -302,6 +305,11 @@ def main():
     # Doctor
     p_doctor = subparsers.add_parser("doctor", help="Diagnose and heal package database & locks")
 
+    # Security Audit
+    p_audit = subparsers.add_parser("security-audit", help="Run 15-vector system security hardening audit")
+    p_audit.add_argument("--json", action="store_true", help="Output audit results in JSON format")
+    p_audit.add_argument("--summary", action="store_true", help="Display concise summary")
+
     args = parser.parse_args()
 
     if args.command == "search":
@@ -316,6 +324,29 @@ def main():
         cmd_upgrade(args.yes)
     elif args.command == "doctor":
         cmd_doctor()
+    elif args.command == "security-audit":
+        audit_mod = load_mod("distro_security_audit", "scripts/distro-security-audit")
+        auditor = audit_mod.SecurityAuditor()
+        rep = auditor.run_full_audit()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 78)
+            print("      AetherOS System Security & Hardening Audit (distro security-audit)     ")
+            print("=" * 78)
+            print(f"Overall Security Score: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 78)
+            for idx, (check_id, check_data) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{check_data['status']}]"
+                print(f" {idx:2}. {badge:<8} {check_data['title']:<38} {check_data['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 78)
+                print("Actionable Hardening Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 78)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,496 @@
+#!/usr/bin/env python3
+"""
+AetherOS Developer Workstation Layer & Setup Utility (distro-dev)
+Enables on-demand, lightweight installation, management, health diagnostics,
+and updates for industry-standard programming runtimes, compilers, cloud CLIs, and utilities.
+
+Supported Tools:
+  - Git, GCC, Clang, LLVM, Make, CMake, Ninja
+  - Python, Node.js, npm, pnpm, Rust, Go, Java, PHP
+  - Docker/Podman, Kubernetes CLI (kubectl), Helm
+  - SSH, OpenSSL, curl, wget, jq, ripgrep, fd, tmux
+"""
+
+import os
+import sys
+import shutil
+import argparse
+import subprocess
+from typing import Dict, Any, List, Tuple, Optional
+
+# ANSI Colors
+BOLD = "\033[1m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+CYAN = "\033[36m"
+RED = "\033[31m"
+DIM = "\033[2m"
+RESET = "\033[0m"
+
+TOOL_CATALOG: Dict[str, Dict[str, Any]] = {
+    # 1. Essential Productivity & Network
+    "git": {
+        "name": "Git",
+        "category": "essentials",
+        "description": "Fast, scalable, distributed revision control system",
+        "packages": ["git"],
+        "binaries": ["git"],
+        "version_cmd": ["git", "--version"],
+    },
+    "ssh": {
+        "name": "OpenSSH Client",
+        "category": "essentials",
+        "description": "Secure remote shell client and key generation tools",
+        "packages": ["openssh-client"],
+        "binaries": ["ssh", "ssh-keygen"],
+        "version_cmd": ["ssh", "-V"],
+    },
+    "openssl": {
+        "name": "OpenSSL",
+        "category": "essentials",
+        "description": "Cryptography toolkit and SSL/TLS cryptographic libraries",
+        "packages": ["openssl"],
+        "binaries": ["openssl"],
+        "version_cmd": ["openssl", "version"],
+    },
+    "curl": {
+        "name": "cURL",
+        "category": "essentials",
+        "description": "Command line tool and library for transferring data with URLs",
+        "packages": ["curl"],
+        "binaries": ["curl"],
+        "version_cmd": ["curl", "--version"],
+    },
+    "wget": {
+        "name": "Wget",
+        "category": "essentials",
+        "description": "Network utility to retrieve files from the Web",
+        "packages": ["wget"],
+        "binaries": ["wget"],
+        "version_cmd": ["wget", "--version"],
+    },
+    "jq": {
+        "name": "jq",
+        "category": "essentials",
+        "description": "Lightweight and flexible command-line JSON processor",
+        "packages": ["jq"],
+        "binaries": ["jq"],
+        "version_cmd": ["jq", "--version"],
+    },
+    "ripgrep": {
+        "name": "ripgrep (rg)",
+        "category": "essentials",
+        "description": "Ultra-fast line-oriented regex search tool",
+        "packages": ["ripgrep"],
+        "binaries": ["rg"],
+        "version_cmd": ["rg", "--version"],
+    },
+    "fd": {
+        "name": "fd-find",
+        "category": "essentials",
+        "description": "Simple, fast and user-friendly alternative to find",
+        "packages": ["fd-find"],
+        "binaries": ["fdfind", "fd"],
+        "version_cmd": ["fdfind", "--version"],
+    },
+    "tmux": {
+        "name": "tmux",
+        "category": "essentials",
+        "description": "Terminal multiplexer with multiple panes and sessions",
+        "packages": ["tmux"],
+        "binaries": ["tmux"],
+        "version_cmd": ["tmux", "-V"],
+    },
+
+    # 2. C / C++ & Native Build Toolchains
+    "gcc": {
+        "name": "GCC & G++",
+        "category": "c-cpp",
+        "description": "GNU C and C++ Compiler collection and build-essential suite",
+        "packages": ["build-essential", "gcc", "g++"],
+        "binaries": ["gcc", "g++"],
+        "version_cmd": ["gcc", "--version"],
+    },
+    "clang": {
+        "name": "Clang C/C++",
+        "category": "c-cpp",
+        "description": "LLVM-based native C, C++, and Objective-C compiler",
+        "packages": ["clang"],
+        "binaries": ["clang", "clang++"],
+        "version_cmd": ["clang", "--version"],
+    },
+    "llvm": {
+        "name": "LLVM Toolchain",
+        "category": "c-cpp",
+        "description": "Modular compiler and toolchain infrastructure",
+        "packages": ["llvm"],
+        "binaries": ["llvm-config"],
+        "version_cmd": ["llvm-config", "--version"],
+    },
+    "make": {
+        "name": "GNU Make",
+        "category": "c-cpp",
+        "description": "Build automation tool for compiling native applications",
+        "packages": ["make"],
+        "binaries": ["make"],
+        "version_cmd": ["make", "--version"],
+    },
+    "cmake": {
+        "name": "CMake",
+        "category": "c-cpp",
+        "description": "Cross-platform open-source build system generator",
+        "packages": ["cmake"],
+        "binaries": ["cmake"],
+        "version_cmd": ["cmake", "--version"],
+    },
+    "ninja": {
+        "name": "Ninja Build",
+        "category": "c-cpp",
+        "description": "Small build system with a focus on speed",
+        "packages": ["ninja-build"],
+        "binaries": ["ninja"],
+        "version_cmd": ["ninja", "--version"],
+    },
+
+    # 3. Languages & Web Runtimes
+    "python": {
+        "name": "Python 3 Dev Suite",
+        "category": "python",
+        "description": "Python runtime, pip package installer, venv, and header files",
+        "packages": ["python3", "python3-pip", "python3-venv", "python3-dev"],
+        "binaries": ["python3", "pip3"],
+        "version_cmd": ["python3", "--version"],
+    },
+    "nodejs": {
+        "name": "Node.js",
+        "category": "web",
+        "description": "JavaScript runtime environment built on V8 engine",
+        "packages": ["nodejs"],
+        "binaries": ["node"],
+        "version_cmd": ["node", "--version"],
+    },
+    "npm": {
+        "name": "npm",
+        "category": "web",
+        "description": "Package manager for JavaScript and Node.js ecosystems",
+        "packages": ["npm"],
+        "binaries": ["npm"],
+        "version_cmd": ["npm", "--version"],
+    },
+    "pnpm": {
+        "name": "pnpm",
+        "category": "web",
+        "description": "Fast, disk space efficient package manager for Node.js",
+        "packages": ["pnpm"],
+        "binaries": ["pnpm"],
+        "version_cmd": ["pnpm", "--version"],
+    },
+    "rust": {
+        "name": "Rust & Cargo",
+        "category": "rust",
+        "description": "Safe, concurrent, high-performance systems programming language",
+        "packages": ["rustc", "cargo"],
+        "binaries": ["rustc", "cargo"],
+        "version_cmd": ["rustc", "--version"],
+    },
+    "go": {
+        "name": "Go (Golang)",
+        "category": "go",
+        "description": "Open source programming language for simple, fast software",
+        "packages": ["golang-go"],
+        "binaries": ["go"],
+        "version_cmd": ["go", "version"],
+    },
+    "java": {
+        "name": "OpenJDK Java JDK",
+        "category": "jvm",
+        "description": "Java Development Kit and OpenJDK runtime environment",
+        "packages": ["default-jdk"],
+        "binaries": ["javac", "java"],
+        "version_cmd": ["javac", "--version"],
+    },
+    "php": {
+        "name": "PHP CLI & Composer",
+        "category": "php",
+        "description": "Popular general-purpose scripting language and dependency manager",
+        "packages": ["php-cli", "php-common"],
+        "binaries": ["php"],
+        "version_cmd": ["php", "--version"],
+    },
+
+    # 4. Containers & Cloud Native
+    "podman": {
+        "name": "Podman",
+        "category": "containers",
+        "description": "Daemonless, rootless container engine for OCI containers and pods",
+        "packages": ["podman"],
+        "binaries": ["podman"],
+        "version_cmd": ["podman", "--version"],
+    },
+    "docker": {
+        "name": "Docker CE",
+        "category": "containers",
+        "description": "Enterprise container platform and daemon",
+        "packages": ["docker.io"],
+        "binaries": ["docker"],
+        "version_cmd": ["docker", "--version"],
+    },
+    "kubectl": {
+        "name": "Kubernetes CLI (kubectl)",
+        "category": "cloud",
+        "description": "Command line tool for controlling Kubernetes clusters",
+        "packages": ["kubectl"],
+        "binaries": ["kubectl"],
+        "version_cmd": ["kubectl", "version", "--client"],
+    },
+    "helm": {
+        "name": "Helm Package Manager",
+        "category": "cloud",
+        "description": "The package manager for Kubernetes applications and charts",
+        "packages": ["helm"],
+        "binaries": ["helm"],
+        "version_cmd": ["helm", "version", "--short"],
+    },
+}
+
+BUNDLES: Dict[str, List[str]] = {
+    "essentials": ["git", "ssh", "openssl", "curl", "wget", "jq", "ripgrep", "fd", "tmux"],
+    "c-cpp": ["gcc", "clang", "llvm", "make", "cmake", "ninja"],
+    "web": ["nodejs", "npm", "pnpm"],
+    "python": ["python"],
+    "rust": ["rust"],
+    "go": ["go"],
+    "jvm": ["java"],
+    "php": ["php"],
+    "containers": ["podman", "docker"],
+    "cloud": ["kubectl", "helm"],
+    "all": list(TOOL_CATALOG.keys()),
+}
+
+class DevWorkstationManager:
+    def __init__(self):
+        self.catalog = TOOL_CATALOG
+        self.bundles = BUNDLES
+
+    def resolve_targets(self, targets: List[str]) -> List[str]:
+        resolved = set()
+        for t in targets:
+            lt = t.lower()
+            if lt in self.bundles:
+                resolved.update(self.bundles[lt])
+            elif lt in self.catalog:
+                resolved.add(lt)
+            else:
+                print(f"{YELLOW}[!] Unknown tool or bundle: '{t}' (skipping){RESET}", file=sys.stderr)
+        return sorted(list(resolved))
+
+    def inspect_tool(self, tool_id: str) -> Dict[str, Any]:
+        info = self.catalog.get(tool_id, {})
+        binaries = info.get("binaries", [tool_id])
+        installed = False
+        active_bin = None
+        bin_path = None
+        version_str = "Not installed"
+
+        for b in binaries:
+            p = shutil.which(b)
+            if p:
+                installed = True
+                active_bin = b
+                bin_path = p
+                break
+
+        if installed and info.get("version_cmd"):
+            try:
+                cmd = [active_bin] + info["version_cmd"][1:]
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+                output = (res.stdout or res.stderr).strip().split("\n")[0]
+                version_str = output
+            except Exception:
+                version_str = "Installed (version probe failed)"
+
+        return {
+            "id": tool_id,
+            "name": info.get("name", tool_id),
+            "category": info.get("category", "general"),
+            "description": info.get("description", ""),
+            "installed": installed,
+            "binary_path": bin_path,
+            "version": version_str,
+            "packages": info.get("packages", [])
+        }
+
+    def doctor(self) -> Dict[str, Any]:
+        results = []
+        installed_count = 0
+        total_count = len(self.catalog)
+
+        for tid in sorted(self.catalog.keys()):
+            st = self.inspect_tool(tid)
+            if st["installed"]:
+                installed_count += 1
+            results.append(st)
+
+        env_checks = {
+            "GOPATH": os.environ.get("GOPATH", "~/go (default)"),
+            "CARGO_HOME": os.environ.get("CARGO_HOME", "~/.cargo (default)"),
+            "NODE_PATH": os.environ.get("NODE_PATH", "None (standard global)"),
+            "SHELL": os.environ.get("SHELL", "/bin/bash"),
+        }
+
+        return {
+            "total_tools": total_count,
+            "installed_count": installed_count,
+            "coverage_pct": round((installed_count / total_count) * 100, 1),
+            "tools": results,
+            "environment": env_checks
+        }
+
+    def install(self, targets: List[str], dry_run: bool = False) -> bool:
+        resolved = self.resolve_targets(targets)
+        if not resolved:
+            print(f"{RED}[-] No valid tools or bundles specified.{RESET}")
+            return False
+
+        packages = []
+        for tid in resolved:
+            packages.extend(self.catalog[tid]["packages"])
+
+        # Deduplicate packages
+        packages = sorted(list(set(packages)))
+
+        print(f"\n{BOLD}=== AetherOS Developer Workstation: Installing Tools ==={RESET}")
+        print(f"Target Tools ({len(resolved)}): {', '.join(resolved)}")
+        print(f"APT Packages ({len(packages)}): {', '.join(packages)}")
+
+        if dry_run:
+            print(f"{GREEN}[+] Dry-run simulation completed successfully.{RESET}")
+            return True
+
+        if shutil.which("apt-get"):
+            cmd = ["sudo", "apt-get", "install", "-y"] + packages
+            print(f"[Exec] Running: {' '.join(cmd)}")
+            res = subprocess.run(cmd)
+            return res.returncode == 0
+        else:
+            print(f"{YELLOW}[!] Simulated package manager execution for {len(packages)} packages.{RESET}")
+            return True
+
+    def remove(self, targets: List[str], dry_run: bool = False) -> bool:
+        resolved = self.resolve_targets(targets)
+        if not resolved:
+            print(f"{RED}[-] No valid tools or bundles specified.{RESET}")
+            return False
+
+        packages = []
+        for tid in resolved:
+            packages.extend(self.catalog[tid]["packages"])
+
+        packages = sorted(list(set(packages)))
+
+        print(f"\n{BOLD}=== AetherOS Developer Workstation: Removing Tools ==={RESET}")
+        print(f"Target Tools ({len(resolved)}): {', '.join(resolved)}")
+        print(f"Packages to remove ({len(packages)}): {', '.join(packages)}")
+
+        if dry_run:
+            print(f"{GREEN}[+] Dry-run simulation completed successfully.{RESET}")
+            return True
+
+        if shutil.which("apt-get"):
+            cmd = ["sudo", "apt-get", "remove", "-y"] + packages
+            print(f"[Exec] Running: {' '.join(cmd)}")
+            res = subprocess.run(cmd)
+            return res.returncode == 0
+        else:
+            print(f"{YELLOW}[!] Simulated package removal for {len(packages)} packages.{RESET}")
+            return True
+
+    def update(self, targets: Optional[List[str]] = None, dry_run: bool = False) -> bool:
+        if not targets:
+            # Update all installed tools
+            installed = [t["id"] for t in self.doctor()["tools"] if t["installed"]]
+            targets = installed or ["all"]
+
+        return self.install(targets, dry_run=dry_run)
+
+def main():
+    parser = argparse.ArgumentParser(description="AetherOS Developer Workstation Layer (distro-dev)")
+    subparsers = parser.add_subparsers(dest="command", help="Sub-command")
+
+    # Install
+    p_inst = subparsers.add_parser("install", help="Install developer toolchains or bundles")
+    p_inst.add_argument("targets", nargs="+", help="Tool names (e.g. rust, go, gcc) or bundle (c-cpp, web, all)")
+    p_inst.add_argument("--dry-run", action="store_true", help="Simulate installation without modifying system")
+
+    # Remove
+    p_rem = subparsers.add_parser("remove", help="Remove developer toolchains or bundles")
+    p_rem.add_argument("targets", nargs="+", help="Tool names or bundle")
+    p_rem.add_argument("--dry-run", action="store_true", help="Simulate removal")
+
+    # Doctor
+    p_doc = subparsers.add_parser("doctor", help="Inspect installed toolchains, paths, and versions")
+    p_doc.add_argument("--json", action="store_true", help="Output doctor diagnostics in JSON format")
+
+    # Update
+    p_upd = subparsers.add_parser("update", help="Update developer toolchains to latest versions")
+    p_upd.add_argument("targets", nargs="*", help="Optional tools/bundles to update (defaults to all installed)")
+    p_upd.add_argument("--dry-run", action="store_true", help="Simulate update")
+
+    # List
+    p_list = subparsers.add_parser("list", help="List all available developer tools and bundles")
+
+    args = parser.parse_args()
+    mgr = DevWorkstationManager()
+
+    if args.command == "install":
+        mgr.install(args.targets, dry_run=args.dry_run)
+    elif args.command == "remove":
+        mgr.remove(args.targets, dry_run=args.dry_run)
+    elif args.command == "update":
+        mgr.update(args.targets, dry_run=args.dry_run)
+    elif args.command == "doctor":
+        rep = mgr.doctor()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 82)
+            print("         AetherOS Developer Workstation Health Doctor (distro-dev doctor)     ")
+            print("=" * 82)
+            print(f"Coverage: {BOLD}{rep['installed_count']}/{rep['total_tools']} tools installed{RESET} ({rep['coverage_pct']}%)")
+            print("-" * 82)
+            print(f"{'Status':<9} {'Tool':<24} {'Category':<14} {'Binary Path / Version'}")
+            print("-" * 82)
+            for t in rep["tools"]:
+                if t["installed"]:
+                    badge = f"{GREEN}[READY]{RESET}"
+                    detail = f"{CYAN}{t['binary_path']}{RESET} ({t['version']})"
+                else:
+                    badge = f"{DIM}[MISSING]{RESET}"
+                    detail = f"{DIM}Not installed{RESET}"
+
+                print(f" {badge:<17} {BOLD}{t['name']:<24}{RESET} {t['category']:<14} {detail}")
+
+            print("\n" + "=" * 82)
+            print(f"{BOLD}Development Environment Variables:{RESET}")
+            for k, v in rep["environment"].items():
+                print(f"  • {k:<14} = {v}")
+            print("=" * 82)
+
+    elif args.command == "list" or not args.command:
+        print("=" * 82)
+        print("         AetherOS Developer Workstation Catalog & Bundles                     ")
+        print("=" * 82)
+        print(f"{BOLD}Available Bundles:{RESET}")
+        for bname, btools in BUNDLES.items():
+            print(f"  • {BOLD}{bname:<14}{RESET} -> {', '.join(btools)}")
+
+        print("\n" + "-" * 82)
+        print(f"{'Tool ID':<14} {'Name':<24} {'Category':<14} {'Description'}")
+        print("-" * 82)
+        for tid, tinfo in sorted(TOOL_CATALOG.items()):
+            print(f" {BOLD}{tid:<14}{RESET} {tinfo['name']:<24} {tinfo['category']:<14} {tinfo['description']}")
+        print("=" * 82)
+
+if __name__ == "__main__":
+    main()

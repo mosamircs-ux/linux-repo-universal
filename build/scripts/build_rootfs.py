@@ -59,14 +59,62 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
         if os.path.exists(zram_src):
             shutil.copy2(zram_src, zram_dest)
 
-        # polkit
+        # Sysctl Security Hardening
+        sysctl_dest = os.path.join(target_dir, "etc/sysctl.d")
+        os.makedirs(sysctl_dest, exist_ok=True)
+        sysctl_src = os.path.join(sys_src, "sysctl")
+        if os.path.exists(sysctl_src):
+            for item in os.listdir(sysctl_src):
+                if item.endswith(".conf"):
+                    shutil.copy2(os.path.join(sysctl_src, item), sysctl_dest)
+
+        # Polkit policies & rules
         polkit_dest = os.path.join(target_dir, "usr/share/polkit-1/actions")
+        polkit_rules_dest = os.path.join(target_dir, "etc/polkit-1/rules.d")
         os.makedirs(polkit_dest, exist_ok=True)
+        os.makedirs(polkit_rules_dest, exist_ok=True)
         polkit_src = os.path.join(sys_src, "polkit")
         if os.path.exists(polkit_src):
             for item in os.listdir(polkit_src):
                 if item.endswith(".policy"):
                     shutil.copy2(os.path.join(polkit_src, item), polkit_dest)
+                elif item.endswith(".rules"):
+                    shutil.copy2(os.path.join(polkit_src, item), polkit_rules_dest)
+
+        # SSH Hardening
+        ssh_dest = os.path.join(target_dir, "etc/ssh/sshd_config.d")
+        os.makedirs(ssh_dest, exist_ok=True)
+        ssh_src = os.path.join(sys_src, "ssh")
+        if os.path.exists(ssh_src):
+            for item in os.listdir(ssh_src):
+                if item.endswith(".conf"):
+                    shutil.copy2(os.path.join(ssh_src, item), ssh_dest)
+
+        # UFW Firewall
+        ufw_dest = os.path.join(target_dir, "etc/ufw")
+        os.makedirs(ufw_dest, exist_ok=True)
+        ufw_src = os.path.join(sys_src, "ufw")
+        if os.path.exists(ufw_src):
+            for item in os.listdir(ufw_src):
+                shutil.copy2(os.path.join(ufw_src, item), ufw_dest)
+
+        # APT Unattended Upgrades
+        apt_dest = os.path.join(target_dir, "etc/apt/apt.conf.d")
+        os.makedirs(apt_dest, exist_ok=True)
+        apt_src = os.path.join(sys_src, "apt")
+        if os.path.exists(apt_src):
+            for item in os.listdir(apt_src):
+                shutil.copy2(os.path.join(apt_src, item), apt_dest)
+
+        # AppArmor security profiles
+        sec_dest = os.path.join(target_dir, "etc/apparmor.d")
+        os.makedirs(sec_dest, exist_ok=True)
+        sec_src = os.path.join(sys_src, "security/apparmor.d")
+        if os.path.exists(sec_src):
+            for item in os.listdir(sec_src):
+                s_fp = os.path.join(sec_src, item)
+                if os.path.isfile(s_fp):
+                    shutil.copy2(s_fp, sec_dest)
 
         # pipewire (if not minimal)
         if profile != "minimal":
@@ -75,16 +123,6 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             pw_src = os.path.join(sys_src, "pipewire/pipewire.conf.d/10-aether-audio.conf")
             if os.path.exists(pw_src):
                 shutil.copy2(pw_src, pw_dest)
-
-        # AppArmor security profiles
-        sec_dest = os.path.join(target_dir, "etc/apparmor.d")
-        os.makedirs(sec_dest, exist_ok=True)
-        sec_src = os.path.join(sys_src, "security")
-        if os.path.exists(sec_src):
-            for item in os.listdir(sec_src):
-                s_fp = os.path.join(sec_src, item)
-                if os.path.isfile(s_fp):
-                    shutil.copy2(s_fp, sec_dest)
 
         # UDev Hardware Rules
         udev_dest = os.path.join(target_dir, "etc/udev/rules.d")
@@ -280,11 +318,16 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             if os.path.exists(d_file_inst):
                 shutil.copy2(d_file_inst, os.path.join(target_dir, "usr/share/applications"))
 
-        # CLI distro tool in /usr/bin
+        # CLI distro tool & security-audit in /usr/bin
         distro_cli_src = os.path.join(REPO_ROOT, "scripts/distro")
         if os.path.exists(distro_cli_src):
             shutil.copy2(distro_cli_src, os.path.join(bin_dest, "distro"))
             os.chmod(os.path.join(bin_dest, "distro"), 0o755)
+
+        sec_audit_src = os.path.join(REPO_ROOT, "scripts/distro-security-audit")
+        if os.path.exists(sec_audit_src):
+            shutil.copy2(sec_audit_src, os.path.join(bin_dest, "distro-security-audit"))
+            os.chmod(os.path.join(bin_dest, "distro-security-audit"), 0o755)
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

@@ -244,6 +244,34 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 if os.path.exists(d_file_files):
                     shutil.copy2(d_file_files, os.path.join(target_dir, "usr/share/applications"))
 
+            # aether-software
+            soft_dest = os.path.join(target_dir, "usr/lib/aether/software")
+            os.makedirs(soft_dest, exist_ok=True)
+            soft_app_src = os.path.join(apps_src, "aether-software")
+            if os.path.exists(soft_app_src):
+                shutil.copytree(soft_app_src, soft_dest, dirs_exist_ok=True)
+                shutil.copy2(os.path.join(soft_app_src, "software_hub.py"), os.path.join(bin_dest, "aether-software"))
+                d_file_soft = os.path.join(soft_app_src, "aether-software.desktop")
+                if os.path.exists(d_file_soft):
+                    shutil.copy2(d_file_soft, os.path.join(target_dir, "usr/share/applications"))
+
+            # aether-updater
+            upd_dest = os.path.join(target_dir, "usr/lib/aether/updater")
+            os.makedirs(upd_dest, exist_ok=True)
+            upd_app_src = os.path.join(apps_src, "aether-updater")
+            if os.path.exists(upd_app_src):
+                shutil.copytree(upd_app_src, upd_dest, dirs_exist_ok=True)
+                shutil.copy2(os.path.join(upd_app_src, "updater_app.py"), os.path.join(bin_dest, "aether-updater"))
+                d_file_upd = os.path.join(upd_app_src, "aether-updater.desktop")
+                if os.path.exists(d_file_upd):
+                    shutil.copy2(d_file_upd, os.path.join(target_dir, "usr/share/applications"))
+
+        # CLI distro tool in /usr/bin
+        distro_cli_src = os.path.join(REPO_ROOT, "scripts/distro")
+        if os.path.exists(distro_cli_src):
+            shutil.copy2(distro_cli_src, os.path.join(bin_dest, "distro"))
+            os.chmod(os.path.join(bin_dest, "distro"), 0o755)
+
     # 5. Profile-specific flags and desktop files
     if profile == "installer":
         # Create installer autostart flag

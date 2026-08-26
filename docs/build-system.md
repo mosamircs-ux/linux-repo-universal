@@ -1,104 +1,109 @@
-# AetherOS Build System & Release Engineering Architecture
+# AetherOS Reproducible Build System & Release Architecture
 
-This document specifies the pipeline for assembling, packaging, compressing, and validating reproducible AetherOS Live ISO distribution images.
+**Distribution:** AetherOS  
+**Release:** 1.0.0 LTS (Solstice)  
+**Supported Architectures:** `x86_64` (Primary), `arm64` (AArch64 Tier-2)  
+**Profiles:** `live`, `installer`, `development`, `minimal`
 
 ---
 
-## 1. Build Pipeline Overview
+## 1. Overview & Core Standards
 
-The AetherOS build architecture is divided into five deterministic stages:
+AetherOS features an automated, deterministic, and cryptographically verified Linux distribution build engine. Every ISO artifact is bit-for-bit reproducible when provided with the same `SOURCE_DATE_EPOCH`.
+
+### Key Capabilities:
+- **Reproducible ISO Generation:** Clamped timestamps, deterministic file sorting, normalized `0:0` UID/GID ownership, and reproducible `zstd` SquashFS compression.
+- **Hybrid UEFI & BIOS Booting:** Generates dual-boot media with UEFI GPT (`bootx64.efi` / `bootaa64.efi`) and El Torito / MBR BIOS fallbacks.
+- **4 Specialized ISO Profiles:**
+  1. `live`: Standard production Wayland desktop with full shell and first-party apps.
+  2. `installer`: Dedicated GUI/CLI live installer that boots straight to disk setup.
+  3. `development`: Live desktop with full compiler toolchains (GCC, Clang, Rust, Python-dev, CMake, Meson, Linux headers).
+  4. `minimal`: Headless server / container baseline with systemd, networking, and Btrfs storage tools.
+- **Cryptographic Signatures & Verification:** Automated `SHA256SUMS`, `SHA512SUMS`, and detached GPG signatures (`.sig` / `.asc` / `SHA256SUMS.gpg`).
+- **Complete Build Metadata:** Structured `build-info.json` recording Git commits, toolchains, build duration, and artifact hashes.
+- **QEMU Virtualization Testing:** Headless and interactive boot validation scripts with OVMF UEFI and BIOS support.
+
+---
+
+## 2. Directory Layout & Build Scripts
 
 ```
-+-------------------------------------------------------------------------+
-| [Stage 1] Automated Verification & Package Linting                     |
-| - Execute unit tests (tests/unit/)                                      |
-| - Verify packaging control files (packages/build-packages.py)            |
-| - Validate Polkit XML and AppArmor profiles (tests/integration/)         |
-+-------------------------------------------------------------------------+
-                                    │
-                                    ▼
-+-------------------------------------------------------------------------+
-| [Stage 2] Root Filesystem Assembly (build-rootfs.py)                   |
-| - Create standard FHS directory structure (bin, sbin, usr, etc.)        |
-| - Stage /kernel sysctl, modules-load, and boot cmdline defaults         |
-| - Stage /system services, pipewire, networkmanager, and udev rules       |
-| - Stage /themes artwork, wallpapers, GTK CSS themes, and fonts          |
-| - Inject /etc/os-release identifying AetherOS Solstice 1.0 LTS          |
-+-------------------------------------------------------------------------+
-                                    │
-                                    ▼
-+-------------------------------------------------------------------------+
-| [Stage 3] SquashFS Compression (mksquashfs)                             |
-| - Compress rootfs using Zstandard algorithm (zstd -Xcompression-level 19)|
-| - Output compressed image to iso_root/casper/filesystem.squashfs         |
-| - Generate kernel (vmlinuz) and initial ramdisk (initrd) artifacts      |
-+-------------------------------------------------------------------------+
-                                    │
-                                    ▼
-+-------------------------------------------------------------------------+
-| [Stage 4] Bootloader Configuration & ISO Assembly (build-iso.py)        |
-| - Stage UEFI GRUB2 configuration in /EFI/BOOT/grub.cfg                  |
-| - Stage BIOS GRUB2 configuration in /boot/grub/grub.cfg                 |
-| - Execute xorriso / mkisofs to build hybrid UEFI/BIOS bootable ISO      |
-+-------------------------------------------------------------------------+
-                                    │
-                                    ▼
-+-------------------------------------------------------------------------+
-| [Stage 5] Reproducibility Check & Cryptographic Verification            |
-| - Compute SHA256 checksum (reproducible-check.py)                       |
-| - Output aetheros-1.0.0-solstice-amd64.iso.sha256                       |
-+-------------------------------------------------------------------------+
+/build
+├── config/
+│   ├── version.json                  # Semantic versioning & distribution info
+│   ├── packages-live.list            # Live desktop package manifest
+│   ├── packages-installer.list       # Dedicated installer package manifest
+│   ├── packages-development.list     # Developer workstation manifest
+│   └── packages-minimal.list         # Minimal headless manifest
+└── scripts/
+    ├── version.py                    # Metadata & artifact naming helper
+    ├── build-rootfs.py               # Deterministic RootFS staging engine
+    ├── build-squashfs.py             # Reproducible Zstandard SquashFS compressor
+    ├── build-iso.py                  # Master Hybrid UEFI/BIOS ISO builder
+    ├── validate-iso.py               # Structural and bootloader validator
+    ├── sign-artifacts.py             # Checksum & GPG signing tool
+    └── reproducible-check.py         # Bit-for-bit dual build verification
 ```
 
 ---
 
-## 2. Key Build Scripts & Roles
+## 3. Quick Start & Build Commands
 
-### 2.1 Package Validator (`packages/build-packages.py`)
-- Inspects `debian/control` and rules files for all core packages:
-  - `aether-base`
-  - `aether-desktop-core`
-  - `aether-artwork`
-  - `aether-settings`
-  - `aether-installer`
-- Asserts strict dependency versioning and package metadata integrity.
+### Bootstrap Host Dependencies (Clean Machine)
+```bash
+./scripts/bootstrap.sh
+```
 
-### 2.2 RootFS Assembler (`build/scripts/build-rootfs.py`)
-- Prepares the target staging filesystem.
-- Installs `/system`, `/kernel`, `/themes`, and application files into their correct absolute paths.
-- Writes the standard `/etc/os-release` manifest.
+### Build Specific Profiles
+```bash
+# Build default Live Desktop ISO
+./scripts/build-live.sh
 
-### 2.3 ISO Generator (`build/scripts/build-iso.py`)
-- Configures GRUB2 live boot entries with default boot parameters:
-  - `boot=casper quiet splash zswap.enabled=0 apparmor=1 security=apparmor`
-  - Safe graphics fallback mode (`nomodeset`)
-  - Memory test entry
-  - UEFI firmware setup entry
-- Executes `mksquashfs` with `zstd:19` for optimal decompression speed during live boot.
-- Builds the hybrid ISO using `xorriso` with El Torito BIOS boot catalog and EFI System Partition headers.
+# Build Dedicated Installer ISO
+./scripts/build-installer.sh
 
-### 2.4 Master Build Orchestrator (`scripts/build-all.sh`)
-- Coordinates the complete build process end-to-end with a single command:
-  ```bash
-  ./scripts/build-all.sh
-  ```
+# Build Developer Workstation ISO
+./scripts/build-dev.sh
+
+# Build Minimal Server ISO
+./scripts/build-minimal.sh
+```
+
+### Master Build CLI (`./scripts/build.sh`)
+```bash
+# Build all 4 profiles with clean workspace
+./scripts/build.sh --all-profiles --clean
+
+# Build ARM64 minimal ISO
+./scripts/build.sh --profile minimal --arch arm64
+
+# Build with automatic QEMU test
+./scripts/build.sh --profile live --test
+```
+
+### Validate & Test ISO in QEMU
+```bash
+# Run structural validation and headless smoke test
+./scripts/test-iso.sh --headless --iso dist/aetheros-1.0.0-solstice-live-amd64.iso
+
+# Launch interactive UEFI QEMU VM
+./scripts/test-iso.sh --uefi --memory 4096
+```
+
+### Cryptographic Verification
+```bash
+# Verify checksums and GPG signatures
+./scripts/sign.sh --verify dist/aetheros-1.0.0-solstice-live-amd64.iso
+```
 
 ---
 
-## 3. Reproducibility & Determinism Standards
+## 4. Continuous Integration Pipeline
 
-To ensure bit-for-bit reproducible builds:
-1. **Pinned Timestamps:** File modification times within archives and SquashFS are normalized using `SOURCE_DATE_EPOCH`.
-2. **Deterministic Compression:** `zstd` is executed with deterministic block sizes (128KB) and duplicate elimination enabled.
-3. **Automated Checksum Verification:** Every build produces an authenticated SHA256 manifest:
-   ```bash
-   python3 build/scripts/reproducible-check.py aetheros-1.0.0-solstice-amd64.iso
-   ```
-
----
-
-## 4. Continuous Integration Pipeline (`/ci`)
-
-AetherOS includes GitHub Actions workflows:
-- **`ci/lint.yml`:** Automatically executes all test suites and package validators on pull requests.
-- **`ci/build-iso.yml`:** Compiles release ISO images on tag creation and attaches verified ISO and SHA256 checksum artifacts.
+All pull requests and tag releases trigger GitHub Actions workflows in `.github/workflows/build-iso.yml` and `ci/build-iso.yml`. The pipeline:
+1. Enforces strict error checking (`set -euo pipefail`).
+2. Validates package metadata and runs all unit/integration test suites.
+3. Builds the ISO profiles across architectures.
+4. Verifies bit-for-bit reproducibility.
+5. Executes automated headless QEMU boot tests.
+6. Publishes authenticated ISOs, `SHA256SUMS`, `SHA512SUMS`, GPG detached signatures, and `build-info.json` metadata.

@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution & Build Outputs
+dist/
+/tmp/aether-*
+*.iso
+*.iso.sha256
+*.iso.sha512
+*.iso.sig
+*.iso.asc
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/

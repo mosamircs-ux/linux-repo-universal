@@ -266,6 +266,20 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 if os.path.exists(d_file_upd):
                     shutil.copy2(d_file_upd, os.path.join(target_dir, "usr/share/applications"))
 
+        # Installer engine & UI in /usr/lib/aether/installer and /usr/bin/aether-installer
+        installer_src = os.path.join(REPO_ROOT, "installer")
+        if os.path.exists(installer_src):
+            inst_dest = os.path.join(target_dir, "usr/lib/aether/installer")
+            os.makedirs(inst_dest, exist_ok=True)
+            shutil.copytree(installer_src, inst_dest, dirs_exist_ok=True)
+            inst_cli = os.path.join(REPO_ROOT, "scripts/aether-installer")
+            if os.path.exists(inst_cli):
+                shutil.copy2(inst_cli, os.path.join(bin_dest, "aether-installer"))
+                os.chmod(os.path.join(bin_dest, "aether-installer"), 0o755)
+            d_file_inst = os.path.join(installer_src, "aether-installer.desktop")
+            if os.path.exists(d_file_inst):
+                shutil.copy2(d_file_inst, os.path.join(target_dir, "usr/share/applications"))
+
         # CLI distro tool in /usr/bin
         distro_cli_src = os.path.join(REPO_ROOT, "scripts/distro")
         if os.path.exists(distro_cli_src):

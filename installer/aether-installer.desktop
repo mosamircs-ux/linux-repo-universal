@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Install AetherOS
+GenericName=Operating System Installer
+Comment=Install AetherOS permanently to your computer
+Exec=aether-installer --gui
+Icon=system-software-install
+Terminal=false
+Categories=System;Utility;
+StartupNotify=true
+Actions=cli-install;
+
+[Desktop Action cli-install]
+Name=Command Line Installer
+Exec=aether-installer --cli

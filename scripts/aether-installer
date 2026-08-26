@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""
+AetherOS System Installer CLI & Launcher
+Supports:
+  --gui           Launch graphical installer wizard (default if DISPLAY/WAYLAND)
+  --cli           Run interactive command-line installer
+  --dry-run       Perform dry-run partitioning and pre-flight validation
+  --auto <file>   Execute automated unattended installation using JSON configuration
+  --verify <dir>  Run 7-point post-installation verification on specified target directory
+"""
+
+import os
+import sys
+import argparse
+import importlib.util
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def load_mod(name, rel_path):
+    fpath = os.path.join(REPO_ROOT, rel_path)
+    spec = importlib.util.spec_from_file_location(name, fpath)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+part_mod = load_mod("partitioner", "installer/src/engine/partitioner.py")
+core_mod = load_mod("installer_core", "installer/src/engine/installer_core.py")
+gui_mod = load_mod("installer_gui", "installer/src/gui/installer_gui.py")
+ver_mod = load_mod("post_install_verifier", "installer/src/engine/post_install_verifier.py")
+
+InstallConfig = core_mod.InstallConfig
+AetherInstallerRunner = core_mod.AetherInstallerRunner
+PartitionPlan = part_mod.PartitionPlan
+PartitionStrategy = part_mod.PartitionStrategy
+PostInstallVerifier = ver_mod.PostInstallVerifier
+
+def main():
+    parser = argparse.ArgumentParser(description="AetherOS OS Installer")
+    parser.add_argument("--gui", action="store_true", help="Launch GTK graphical installer wizard")
+    parser.add_argument("--cli", action="store_true", help="Run interactive CLI installer")
+    parser.add_argument("--dry-run", action="store_true", help="Perform pre-flight dry-run check")
+    parser.add_argument("--auto", type=str, help="Automated installation config JSON file")
+    parser.add_argument("--verify", type=str, help="Verify existing target installation directory")
+
+    args = parser.parse_args()
+
+    if args.verify:
+        print(f"=== Running Post-Installation Verification on '{args.verify}' ===")
+        res = PostInstallVerifier.verify_all(args.verify)
+        for check, data in res["checks"].items():
+            flag = "[PASS]" if data["passed"] else "[FAIL]"
+            print(f"  {flag:7} {check:<20} {data['message']}")
+        print(f"\nOverall Status: {'SUCCESS' if res['all_passed'] else 'FAILED'}")
+        sys.exit(0 if res["all_passed"] else 1)
+
+    cfg = InstallConfig()
+    if args.auto and os.path.exists(args.auto):
+        import json
+        with open(args.auto, "r") as f:
+            data = json.load(f)
+            for k, v in data.items():
+                if hasattr(cfg, k):
+                    setattr(cfg, k, v)
+
+    if args.dry_run:
+        print("=== AetherOS Installer: Pre-Flight Dry-Run Validation ===")
+        plan = PartitionPlan(cfg.target_disk, cfg.strategy, cfg.is_efi, cfg.use_encryption)
+        ok, errors = plan.validate_plan()
+        print(plan.get_destructive_warning())
+        if ok:
+            print("\n[+] Dry-run validation PASSED! System is ready for installation.")
+        else:
+            print(f"\n[-] Validation FAILED: {errors}")
+            sys.exit(1)
+        return
+
+    # Default to GUI if display available, otherwise CLI
+    if args.gui or (not args.cli and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))):
+        gui_mod.main()
+    else:
+        print("=== AetherOS CLI Installer Runner ===")
+        runner = AetherInstallerRunner(cfg)
+        runner.run_installation()
+
+if __name__ == "__main__":
+    main()

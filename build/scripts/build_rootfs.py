@@ -323,7 +323,12 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
                 shutil.copy2(d_file_inst, os.path.join(target_dir, "usr/share/applications"))
 
         # CLI distro tools in /usr/bin
-        for tool_name in ["distro", "distro-security-audit", "distro-dev"]:
+        doctor_tools = [
+            "distro", "distro-security-audit", "distro-dev",
+            "distro-network-doctor", "distro-audio-doctor",
+            "distro-bluetooth-doctor", "distro-printer-doctor"
+        ]
+        for tool_name in doctor_tools:
             t_src = os.path.join(REPO_ROOT, f"scripts/{tool_name}")
             if os.path.exists(t_src):
                 shutil.copy2(t_src, os.path.join(bin_dest, tool_name))

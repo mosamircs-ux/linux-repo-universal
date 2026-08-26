@@ -317,6 +317,19 @@ def main():
     p_dev.add_argument("--dry-run", action="store_true", help="Simulate action without changes")
     p_dev.add_argument("--json", action="store_true", help="JSON output format for doctor")
 
+    # Hardware Service Doctors
+    p_netdoc = subparsers.add_parser("network-doctor", help="Diagnose NetworkManager, Wi-Fi, Ethernet, DNS & Gateway")
+    p_netdoc.add_argument("--json", action="store_true", help="JSON output format")
+
+    p_auddoc = subparsers.add_parser("audio-doctor", help="Diagnose PipeWire, PulseAudio, ALSA & Bluetooth audio")
+    p_auddoc.add_argument("--json", action="store_true", help="JSON output format")
+
+    p_btdoc = subparsers.add_parser("bluetooth-doctor", help="Diagnose BlueZ daemon, adapters, pairing & HID/Audio")
+    p_btdoc.add_argument("--json", action="store_true", help="JSON output format")
+
+    p_prndoc = subparsers.add_parser("printer-doctor", help="Diagnose CUPS, Avahi mDNS, USB/network printers & SANE scanners")
+    p_prndoc.add_argument("--json", action="store_true", help="JSON output format")
+
     args = parser.parse_args()
 
     if args.command == "search":
@@ -331,6 +344,98 @@ def main():
         cmd_upgrade(args.yes)
     elif args.command == "doctor":
         cmd_doctor()
+    elif args.command == "network-doctor":
+        net_mod = load_mod("distro_network_doctor", "scripts/distro-network-doctor")
+        doc = net_mod.NetworkDoctor()
+        rep = doc.run_diagnostics()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 80)
+            print("           AetherOS Network Health Diagnostics (distro network-doctor)       ")
+            print("=" * 80)
+            print(f"Overall Network Health: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 80)
+            for idx, (cid, cdata) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{cdata['status']}]"
+                print(f" {idx}. {badge:<8} {cdata['title']:<32} {cdata['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 80)
+                print("Actionable Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 80)
+    elif args.command == "audio-doctor":
+        aud_mod = load_mod("distro_audio_doctor", "scripts/distro-audio-doctor")
+        doc = aud_mod.AudioDoctor()
+        rep = doc.run_diagnostics()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 80)
+            print("           AetherOS Audio Health Diagnostics (distro audio-doctor)           ")
+            print("=" * 80)
+            print(f"Overall Audio Health: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 80)
+            for idx, (cid, cdata) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{cdata['status']}]"
+                print(f" {idx}. {badge:<8} {cdata['title']:<34} {cdata['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 80)
+                print("Actionable Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 80)
+    elif args.command == "bluetooth-doctor":
+        bt_mod = load_mod("distro_bluetooth_doctor", "scripts/distro-bluetooth-doctor")
+        doc = bt_mod.BluetoothDoctor()
+        rep = doc.run_diagnostics()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 80)
+            print("         AetherOS Bluetooth Health Diagnostics (distro bluetooth-doctor)     ")
+            print("=" * 80)
+            print(f"Overall Bluetooth Health: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 80)
+            for idx, (cid, cdata) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{cdata['status']}]"
+                print(f" {idx}. {badge:<8} {cdata['title']:<34} {cdata['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 80)
+                print("Actionable Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 80)
+    elif args.command == "printer-doctor":
+        prn_mod = load_mod("distro_printer_doctor", "scripts/distro-printer-doctor")
+        doc = prn_mod.PrinterDoctor()
+        rep = doc.run_diagnostics()
+        if args.json:
+            import json
+            print(json.dumps(rep, indent=2))
+        else:
+            print("=" * 80)
+            print("      AetherOS Printing & Scanning Health Diagnostics (distro printer-doctor) ")
+            print("=" * 80)
+            print(f"Overall Printing Health: {rep['score']}/100 [Grade: {rep['grade']}]")
+            print(f"Passed: {rep['passed']} | Warnings: {rep['warnings']} | Failed: {rep['failed']}")
+            print("-" * 80)
+            for idx, (cid, cdata) in enumerate(rep["checks"].items(), 1):
+                badge = f"[{cdata['status']}]"
+                print(f" {idx}. {badge:<8} {cdata['title']:<34} {cdata['message']}")
+            if rep["recommendations"]:
+                print("\n" + "=" * 80)
+                print("Actionable Recommendations:")
+                for r in rep["recommendations"]:
+                    print(f"  • {r}")
+            print("=" * 80)
     elif args.command == "security-audit":
         audit_mod = load_mod("distro_security_audit", "scripts/distro-security-audit")
         auditor = audit_mod.SecurityAuditor()

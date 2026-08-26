@@ -1,0 +1,49 @@
+# AetherOS Dedicated Installer Package Manifest
+# Profile: installer (Solstice 1.0 LTS)
+
+# Kernel & Hardware Firmware
+linux-image-generic
+linux-firmware
+
+# Base System & Init
+systemd
+systemd-sysv
+dbus-user-session
+udev
+sudo
+locales
+ca-certificates
+
+# Networking (Essential for driver download / network installation)
+network-manager
+wpasupplicant
+curl
+wget
+
+# Display & Minimal GUI Shell
+labwc
+swaybg
+foot
+fonts-inter
+fonts-cairo
+
+# Aether Installer Suite
+aether-base
+aether-artwork
+aether-installer
+
+# Storage, Partitioning & Filesystem Tools
+btrfs-progs
+e2fsprogs
+dosfstools
+xfsprogs
+parted
+fdisk
+gdisk
+util-linux
+cryptsetup
+lvm2
+zstd
+grub-efi-amd64-bin
+grub-pc-bin
+plymouth

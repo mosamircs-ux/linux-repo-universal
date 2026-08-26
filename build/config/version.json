@@ -1,0 +1,13 @@
+{
+  "name": "AetherOS",
+  "codename": "Solstice",
+  "version": "1.0.0",
+  "release_channel": "LTS",
+  "source_date_epoch": 1700000000,
+  "supported_architectures": ["x86_64", "arm64"],
+  "profiles": ["live", "installer", "development", "minimal"],
+  "default_profile": "live",
+  "default_arch": "x86_64",
+  "url": "https://aetheros.org",
+  "bug_report_url": "https://github.com/aetheros/aetheros/issues"
+}

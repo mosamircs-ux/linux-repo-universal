@@ -2,36 +2,86 @@ name: Reproducible ISO Release Pipeline
 
 on:
   push:
+    branches: [ main, release/* ]
     tags:
       - 'v*'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
+# Never silently ignore build failures: fail-fast enabled
 jobs:
-  build-release-iso:
+  build-and-verify-iso:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        profile: [live, installer, development, minimal]
+        arch: [x86_64]
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install Build Tools
+      - name: Install System Build Toolchain
         run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools
+          sudo apt-get install -y --no-install-recommends \
+            squashfs-tools \
+            xorriso \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            mtools \
+            gnupg \
+            zstd \
+            qemu-system-x86 \
+            ovmf
 
-      - name: Run Build Pipeline
+      - name: Bootstrap Environment & Linting
         run: |
-          chmod +x scripts/build-all.sh
-          ./scripts/build-all.sh
+          set -euo pipefail
+          python3 packages/build-packages.py
+          python3 -m unittest discover -s tests -v
 
-      - name: Upload Release ISO & Checksums
+      - name: Build Reproducible ISO Image (${{ matrix.profile }})
+        run: |
+          set -euo pipefail
+          python3 build/scripts/build-iso.py \
+            --profile "${{ matrix.profile }}" \
+            --arch "${{ matrix.arch }}" \
+            --dist-dir "dist" \
+            --clean
+
+      - name: Verify ISO Bit-for-Bit Reproducibility
+        if: matrix.profile == 'minimal'
+        run: |
+          set -euo pipefail
+          python3 build/scripts/reproducible-check.py --profile minimal
+
+      - name: Run Headless QEMU Smoke Test
+        run: |
+          set -euo pipefail
+          ./scripts/test-iso.sh --headless --iso "dist/"*.iso
+
+      - name: Upload Release Artifacts (ISOs, Checksums & Signatures)
         uses: actions/upload-artifact@v4
         with:
-          name: aetheros-solstice-amd64-iso
+          name: aetheros-${{ matrix.profile }}-${{ matrix.arch }}-artifacts
           path: |
-            aetheros-1.0.0-solstice-amd64.iso
-            aetheros-1.0.0-solstice-amd64.iso.sha256
+            dist/*.iso
+            dist/*.sha256
+            dist/*.sha512
+            dist/*.sig
+            dist/*.asc
+            dist/SHA256SUMS*
+            dist/SHA512SUMS*
+            dist/*build-info.json
+          if-no-files-found: error

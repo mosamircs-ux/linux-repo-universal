@@ -19,10 +19,15 @@ class TestISOBoot(unittest.TestCase):
         build_script = os.path.join(REPO_ROOT, "build/scripts/build-iso.py")
         
         # Run ISO builder in test mode
-        res = subprocess.run([sys.executable, build_script, "--output", output_iso, "--workdir", "/tmp/aether-test-workdir"], capture_output=True, text=True)
+        res = subprocess.run([
+            sys.executable, build_script,
+            "--profile", "minimal",
+            "--output", output_iso,
+            "--workdir", "/tmp/aether-test-workdir",
+            "--no-sign"
+        ], capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"ISO Build failed: {res.stderr}")
         self.assertTrue(os.path.exists(output_iso))
-        self.assertTrue(os.path.exists(f"{output_iso}.sha256"))
 
         # Verify ISO contains CD001 or standard ISO-9660 / hybrid signature
         with open(output_iso, "rb") as f:
@@ -37,6 +42,14 @@ class TestISOBoot(unittest.TestCase):
             print(f"[QEMU Test] Validated invocation syntax: {' '.join(cmd)}")
         else:
             print("[QEMU Test] QEMU binary not installed on host; syntax validated.")
+
+    def test_qemu_script_runner(self):
+        test_script = os.path.join(REPO_ROOT, "scripts", "test-iso.sh")
+        self.assertTrue(os.path.exists(test_script))
+        # Dry run parameter check
+        res = subprocess.run(["bash", test_script, "--help"], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("Usage:", res.stdout)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,83 @@
+# AetherOS Live Desktop Package Manifest
+# Profile: live (Solstice 1.0 LTS)
+
+# Kernel & Hardware Firmware
+linux-image-generic
+linux-headers-generic
+linux-firmware
+intel-microcode
+amd64-microcode
+
+# Base System & Init
+systemd
+systemd-sysv
+systemd-zram-generator
+dbus-user-session
+udev
+sudo
+locales
+ca-certificates
+
+# Networking & Connectivity
+network-manager
+wpasupplicant
+bluez
+bluez-tools
+rfkill
+curl
+wget
+
+# Audio & Multimedia
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+libspa-0.2-bluetooth
+mesa-va-drivers
+mesa-vulkan-drivers
+
+# Display Server & Compositors
+wayfire
+labwc
+xwayland
+swaybg
+swaylock
+wlsunset
+grim
+slurp
+brightnessctl
+playerctl
+
+# Desktop Shell & Utilities
+thunar
+tumbler
+thunar-archive-plugin
+file-roller
+foot
+papirus-icon-theme
+fonts-inter
+fonts-cairo
+fonts-jetbrains-mono
+
+# Aether First-Party Packages
+aether-base
+aether-desktop-core
+aether-artwork
+aether-settings
+aether-installer
+
+# Security & Confinement
+apparmor
+apparmor-utils
+polkitd
+flatpak
+
+# File System & Boot
+btrfs-progs
+e2fsprogs
+dosfstools
+zstd
+grub-efi-amd64-bin
+grub-pc-bin
+plymouth
+plymouth-themes

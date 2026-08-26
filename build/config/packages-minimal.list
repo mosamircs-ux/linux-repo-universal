@@ -1,0 +1,48 @@
+# AetherOS Minimal / Server Package Manifest
+# Profile: minimal (Solstice 1.0 LTS)
+
+# Kernel & Firmware
+linux-image-generic
+linux-firmware
+
+# Base System & Init
+systemd
+systemd-sysv
+systemd-zram-generator
+dbus
+udev
+sudo
+locales
+ca-certificates
+tzdata
+
+# Networking & Connectivity
+network-manager
+iproute2
+iputils-ping
+curl
+wget
+openssh-server
+openssh-client
+iptables
+nftables
+
+# Essential System Tools
+btrfs-progs
+e2fsprogs
+dosfstools
+zstd
+tar
+gzip
+util-linux
+procps
+htop
+nano
+less
+
+# Aether Base Configuration
+aether-base
+
+# Bootloader
+grub-efi-amd64-bin
+grub-pc-bin

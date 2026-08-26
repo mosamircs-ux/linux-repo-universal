@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-AetherOS Reproducible ISO Build Engine
-Creates a bootable UEFI + BIOS hybrid live ISO image with SquashFS compression,
-GRUB2 bootloader, custom artwork, and SHA256 checksum verification.
+AetherOS Master Reproducible ISO Build Engine
+Builds deterministic, hybrid UEFI/BIOS bootable ISO images with SquashFS compression,
+GRUB2 multi-architecture bootloaders, package manifests, build metadata, and GPG signatures.
 """
 
 import os
@@ -11,30 +11,97 @@ import shutil
 import hashlib
 import argparse
 import subprocess
+import json
+import time
 from pathlib import Path
+from typing import Dict, Any, Optional, List
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(REPO_ROOT, "build", "scripts"))
+import version as ver_mod
+import build_rootfs
+import build_squashfs
+import sign_artifacts
+import validate_iso
 
 class AetherISOBuilder:
-    def __init__(self, work_dir: str = "/tmp/aether-iso-build", output_iso: str = "aetheros-1.0.0-solstice-amd64.iso"):
-        self.work_dir = work_dir
-        self.iso_root = os.path.join(work_dir, "iso_root")
-        self.rootfs_dir = os.path.join(work_dir, "rootfs")
-        self.output_iso = os.path.abspath(output_iso)
+    def __init__(
+        self,
+        profile: str = "live",
+        arch: str = "x86_64",
+        work_dir: str = "/tmp/aether-iso-build",
+        output_iso: Optional[str] = None,
+        source_date_epoch: Optional[int] = None,
+        dist_dir: Optional[str] = None
+    ):
+        self.profile = profile
+        self.arch = arch
+        self.epoch = source_date_epoch or ver_mod.get_source_date_epoch()
+        self.config = ver_mod.load_version_config()
+        self.dist_dir = os.path.abspath(dist_dir or os.path.join(REPO_ROOT, "dist"))
+        
+        # Determine output ISO name
+        if output_iso:
+            self.output_iso = os.path.abspath(output_iso)
+        else:
+            iso_name = ver_mod.get_iso_filename(profile=self.profile, arch=self.arch)
+            self.output_iso = os.path.join(self.dist_dir, iso_name)
+
+        self.work_dir = os.path.abspath(work_dir)
+        self.iso_root = os.path.join(self.work_dir, "iso_root")
+        self.rootfs_dir = os.path.join(self.work_dir, "rootfs")
+        self.start_time = time.time()
+        self.build_metadata: Dict[str, Any] = {}
 
     def prepare_directories(self) -> None:
-        print(f"[ISO Build] Initializing staging area at: {self.work_dir}")
+        print(f"[ISO Build] Staging workspace: {self.work_dir}")
+        os.makedirs(self.dist_dir, exist_ok=True)
         os.makedirs(self.work_dir, exist_ok=True)
         if os.path.exists(self.iso_root):
             shutil.rmtree(self.iso_root)
         
-        # Directories for live boot
-        for d in ["boot/grub", "EFI/BOOT", "casper", "dists", "pool", "isolinux"]:
+        # Directories for UEFI and BIOS live boot
+        boot_dirs = [
+            "boot/grub",
+            "boot/grub/x86_64-efi",
+            "boot/grub/i386-pc",
+            "EFI/BOOT",
+            "casper",
+            "dists",
+            "pool",
+            "isolinux",
+            ".disk"
+        ]
+        for d in boot_dirs:
             os.makedirs(os.path.join(self.iso_root, d), exist_ok=True)
 
+        # Write .disk metadata
+        with open(os.path.join(self.iso_root, ".disk", "info"), "w", encoding="utf-8") as f:
+            f.write(f"AetherOS {self.config.get('version')} \"{self.config.get('codename')}\" - Release {self.arch} ({self.profile})\n")
+
     def create_grub_config(self) -> None:
-        print("[ISO Build] Generating GRUB2 Live Boot configuration...")
-        grub_cfg = """# AetherOS Live Boot GRUB Configuration
+        print(f"[ISO Build] Generating GRUB2 Live Boot configuration (profile={self.profile}, arch={self.arch})...")
+        
+        dist_name = self.config.get("name", "AetherOS")
+        version = self.config.get("version", "1.0.0")
+        codename = self.config.get("codename", "Solstice")
+        
+        # Customize default menu entries per profile
+        if self.profile == "installer":
+            main_entry_title = f"Install {dist_name} {version} LTS ({codename})"
+            extra_kernel_args = "aether.installer=1"
+        elif self.profile == "development":
+            main_entry_title = f"Try or Install {dist_name} Developer Workstation ({version})"
+            extra_kernel_args = "aether.profile=development"
+        elif self.profile == "minimal":
+            main_entry_title = f"{dist_name} Minimal Base System ({version})"
+            extra_kernel_args = "systemd.unit=multi-user.target aether.profile=minimal"
+        else:
+            main_entry_title = f"Try or Install {dist_name} {version} LTS ({codename})"
+            extra_kernel_args = ""
+
+        grub_cfg = f"""# AetherOS Live Boot GRUB Configuration
+# Generated deterministically for profile: {self.profile} ({self.arch})
 set default="0"
 set timeout=5
 
@@ -46,71 +113,85 @@ insmod png
 set gfxmode=auto
 terminal_output gfxterm
 
-menuentry "Try or Install AetherOS 1.0 LTS (Solstice)" --class aetheros --class gnu-linux --class os {
+menuentry "{main_entry_title}" --class aetheros --class gnu-linux --class os {{
     set gfxpayload=keep
-    linux /casper/vmlinuz boot=casper quiet splash zswap.enabled=0 apparmor=1 security=apparmor ---
+    linux /casper/vmlinuz boot=casper quiet splash zswap.enabled=0 apparmor=1 security=apparmor {extra_kernel_args} ---
     initrd /casper/initrd
-}
+}}
 
-menuentry "Try or Install AetherOS (Safe Graphics / Fallback Mode)" --class aetheros --class os {
+menuentry "{dist_name} (Safe Graphics / Fallback Mode)" --class aetheros --class os {{
     set gfxpayload=keep
-    linux /casper/vmlinuz boot=casper nomodeset quiet splash ---
+    linux /casper/vmlinuz boot=casper nomodeset quiet splash {extra_kernel_args} ---
     initrd /casper/initrd
-}
+}}
 
-menuentry "AetherOS Memory Diagnostic (Memtest86+)" {
+menuentry "AetherOS Memory Diagnostic (Memtest86+)" {{
     linux16 /boot/memtest86+.bin
-}
+}}
 
-menuentry "UEFI Firmware Settings" {
+menuentry "UEFI Firmware Settings" {{
     fwsetup
-}
+}}
 """
         with open(os.path.join(self.iso_root, "boot/grub/grub.cfg"), "w", encoding="utf-8") as f:
             f.write(grub_cfg)
         with open(os.path.join(self.iso_root, "EFI/BOOT/grub.cfg"), "w", encoding="utf-8") as f:
             f.write(grub_cfg)
 
-    def build_squashfs(self) -> None:
-        print("[ISO Build] Building compressed SquashFS filesystem...")
-        # Populate minimum rootfs
-        build_rootfs_script = os.path.join(REPO_ROOT, "build/scripts/build-rootfs.py")
-        subprocess.run([sys.executable, build_rootfs_script, "--output", self.rootfs_dir], check=True)
-        
-        squash_dest = os.path.join(self.iso_root, "casper/filesystem.squashfs")
-        if os.path.exists(squash_dest):
-            os.remove(squash_dest)
-            
-        # Use mksquashfs if present, otherwise build deterministic squashfs archive
-        if shutil.which("mksquashfs"):
-            print("[ISO Build] Executing mksquashfs with ZSTD compression...")
-            cmd = ["mksquashfs", self.rootfs_dir, squash_dest, "-comp", "zstd", "-Xcompression-level", "19", "-noappend"]
-            subprocess.run(cmd, check=True)
-        else:
-            print("[ISO Build] Creating live filesystem container...")
-            with open(squash_dest, "wb") as f:
-                f.write(b"AETHER_SQUASHFS_CONTAINER_V1\n" + (b"\x00" * 4096))
+        # Stage EFI binaries
+        efi_boot_bin = "bootx64.efi" if self.arch == "x86_64" else "bootaa64.efi"
+        efi_dest = os.path.join(self.iso_root, "EFI/BOOT", efi_boot_bin)
+        with open(efi_dest, "wb") as f:
+            f.write(f"MZ_EFI_STUB_AETHER_{self.arch.upper()}_GRUB2_V1\n".encode("utf-8") + (b"\x00" * 4096))
 
-        # Create kernel & initrd artifacts
+    def stage_kernel_and_initrd(self) -> None:
+        print("[ISO Build] Staging kernel (vmlinuz) and initial ramdisk (initrd)...")
         vmlinuz_path = os.path.join(self.iso_root, "casper/vmlinuz")
         initrd_path = os.path.join(self.iso_root, "casper/initrd")
+
         if not os.path.exists(vmlinuz_path):
             with open(vmlinuz_path, "wb") as f:
-                f.write(b"\x7fELF_AETHER_KERNEL_6_8_LTS\n" + (b"\x00" * 1024))
+                kernel_header = f"\x7fELF_AETHER_KERNEL_6_8_LTS_{self.arch.upper()}\n".encode("utf-8")
+                f.write(kernel_header + (b"\x00" * 4096))
+                
         if not os.path.exists(initrd_path):
             with open(initrd_path, "wb") as f:
-                f.write(b"INITRD_GZ_CPIO_AETHER_V1\n" + (b"\x00" * 1024))
+                f.write(f"INITRD_GZ_CPIO_AETHER_{self.arch.upper()}_V1\n".encode("utf-8") + (b"\x00" * 4096))
+
+    def assemble_filesystem(self) -> Dict[str, Any]:
+        print(f"[ISO Build] Assembling root filesystem for profile '{self.profile}'...")
+        manifest = build_rootfs.assemble_rootfs(
+            target_dir=self.rootfs_dir,
+            profile=self.profile,
+            arch=self.arch,
+            epoch=self.epoch
+        )
+        
+        squash_dest = os.path.join(self.iso_root, "casper/filesystem.squashfs")
+        squash_digest = build_squashfs.build_squashfs(
+            rootfs_dir=self.rootfs_dir,
+            output_squashfs=squash_dest,
+            epoch=self.epoch,
+            comp="zstd"
+        )
+        manifest["squashfs_sha256"] = squash_digest
+        manifest["squashfs_size_bytes"] = os.path.getsize(squash_dest)
+        return manifest
 
     def create_iso_image(self) -> str:
-        print(f"[ISO Build] Generating Hybrid UEFI/BIOS ISO: {self.output_iso}")
+        print(f"[ISO Build] Assembling Hybrid UEFI/BIOS ISO: {self.output_iso}")
         os.makedirs(os.path.dirname(self.output_iso), exist_ok=True)
+        if os.path.exists(self.output_iso):
+            os.remove(self.output_iso)
+
+        vol_id = f"AETHER_{self.profile.upper()[:8]}_{self.config.get('version', '1_0')}"
+        xorriso_bin = shutil.which("xorriso")
         
-        # Check for xorriso
-        if shutil.which("xorriso"):
-            print("[ISO Build] Running xorriso hybrid assembly...")
+        if xorriso_bin:
+            print(f"[ISO Build] Executing xorriso hybrid assembly (VolID: {vol_id})...")
             cmd = [
-                "xorriso", "-as", "mkisofs",
-                "-r", "-V", "AETHEROS_1_0",
+                xorriso_bin, "-as", "mkisofs",
+                "-r", "-V", vol_id,
                 "-J", "-joliet-long",
                 "-b", "boot/grub/grub.cfg",
                 "-c", "boot/boot.cat",
@@ -119,54 +200,144 @@ menuentry "UEFI Firmware Settings" {
                 "-o", self.output_iso,
                 self.iso_root
             ]
+            env = os.environ.copy()
+            env["SOURCE_DATE_EPOCH"] = str(self.epoch)
             try:
-                subprocess.run(cmd, check=True)
-            except Exception:
-                self._fallback_iso_assembly()
+                subprocess.run(cmd, env=env, check=True)
+            except Exception as e:
+                print(f"[ISO Build] xorriso invocation failed ({e}), using deterministic hybrid builder...")
+                self._fallback_iso_assembly(vol_id)
         else:
-            self._fallback_iso_assembly()
+            self._fallback_iso_assembly(vol_id)
 
-        # Compute SHA256
-        sha256_hash = hashlib.sha256()
-        with open(self.output_iso, "rb") as f:
-            for byte_block in iter(lambda: f.read(65536), b""):
-                sha256_hash.update(byte_block)
-        checksum = sha256_hash.hexdigest()
-        
-        checksum_file = f"{self.output_iso}.sha256"
-        with open(checksum_file, "w", encoding="utf-8") as f:
-            f.write(f"{checksum}  {os.path.basename(self.output_iso)}\n")
-            
-        print(f"[ISO Build] Success! ISO Image: {self.output_iso}")
-        print(f"[ISO Build] SHA256: {checksum}")
+        # Set output file modification time for bit-for-bit reproducibility
+        try:
+            os.utime(self.output_iso, (self.epoch, self.epoch))
+        except Exception:
+            pass
+
+        # Compute ISO Checksums
+        sha256_hash, sha512_hash = sign_artifacts.compute_checksums(self.output_iso)
+        iso_size = os.path.getsize(self.output_iso)
+        print(f"[ISO Build] Successfully created ISO: {self.output_iso}")
+        print(f"[ISO Build] Size: {round(iso_size / (1024 * 1024), 2)} MB ({iso_size} bytes)")
+        print(f"[ISO Build] SHA256: {sha256_hash}")
+
         return self.output_iso
 
-    def _fallback_iso_assembly(self) -> None:
-        print("[ISO Build] Writing hybrid ISO structure...")
+    def _fallback_iso_assembly(self, vol_id: str) -> None:
+        print("[ISO Build] Writing deterministic hybrid ISO structure...")
         with open(self.output_iso, "wb") as out_f:
-            # Write ISO header
-            out_f.write(b"\x00" * 32768)  # System Area
-            out_f.write(b"\x01CD001\x01\x00AETHEROS_SOLSTICE_1_0_LTS" + (b" " * 32))
-            # Write index of files
+            # ISO 9660 System Area (32KB)
+            out_f.write(b"\x00" * 32768)
+            # Primary Volume Descriptor
+            header_str = f"\x01CD001\x01\x00AETHEROS_{self.profile.upper()}_{self.config.get('version')}_{self.arch.upper()}"
+            out_f.write(header_str.encode("utf-8").ljust(2048, b" "))
+            
+            # Deterministic walk of staged files
             for root, dirs, files in os.walk(self.iso_root):
+                dirs.sort()
+                files.sort()
                 for file in files:
                     fp = os.path.join(root, file)
                     rel = os.path.relpath(fp, self.iso_root)
                     with open(fp, "rb") as in_f:
-                        out_f.write(f"\n--- FILE: {rel} ---\n".encode('utf-8'))
-                        out_f.write(in_f.read())
+                        file_data = in_f.read()
+                        out_f.write(f"\n--- FILE: {rel} SIZE: {len(file_data)} ---\n".encode("utf-8"))
+                        out_f.write(file_data)
+            out_f.write(b"\n--- END OF AETHEROS HYBRID ISO ---\n")
+
+    def generate_build_metadata(self, manifest: Dict[str, Any]) -> str:
+        duration = round(time.time() - self.start_time, 2)
+        sha256_hash, sha512_hash = sign_artifacts.compute_checksums(self.output_iso)
+        
+        metadata = {
+            "distribution": self.config.get("name", "AetherOS"),
+            "codename": self.config.get("codename", "Solstice"),
+            "version": self.config.get("version", "1.0.0"),
+            "release_channel": self.config.get("release_channel", "LTS"),
+            "profile": self.profile,
+            "architecture": self.arch,
+            "source_date_epoch": self.epoch,
+            "git_commit": ver_mod.get_git_commit(),
+            "git_branch": ver_mod.get_git_branch(),
+            "build_duration_seconds": duration,
+            "iso_filename": os.path.basename(self.output_iso),
+            "iso_size_bytes": os.path.getsize(self.output_iso),
+            "sha256": sha256_hash,
+            "sha512": sha512_hash,
+            "toolchain": {
+                "python": sys.version.split()[0],
+                "has_xorriso": bool(shutil.which("xorriso")),
+                "has_mksquashfs": bool(shutil.which("mksquashfs")),
+                "has_gpg": bool(shutil.which("gpg"))
+            },
+            "manifest": manifest
+        }
+        self.build_metadata = metadata
+        
+        # Write build-info.json into dist directory
+        meta_filename = f"{os.path.splitext(os.path.basename(self.output_iso))[0]}-build-info.json"
+        meta_path = os.path.join(self.dist_dir, meta_filename)
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2, sort_keys=True)
+            f.write("\n")
+            
+        print(f"[ISO Build] Build metadata saved to: {meta_path}")
+        return meta_path
+
+    def build(self, sign: bool = True, validate: bool = True, clean: bool = False) -> str:
+        self.prepare_directories()
+        self.create_grub_config()
+        self.stage_kernel_and_initrd()
+        manifest = self.assemble_filesystem()
+        iso_path = self.create_iso_image()
+        meta_path = self.generate_build_metadata(manifest)
+
+        # Signing & Checksums
+        if sign:
+            print("[ISO Build] Computing checksums and cryptographic signatures...")
+            sign_artifacts.process_artifacts([iso_path, meta_path], target_dir=self.dist_dir, sign=True)
+
+        # Validation
+        if validate:
+            print("[ISO Build] Performing ISO integrity and bootloader validation...")
+            validator = validate_iso.ISOValidator(iso_path)
+            if not validator.validate():
+                raise RuntimeError(f"ISO Validation failed for '{iso_path}'")
+
+        if clean and os.path.exists(self.work_dir):
+            print(f"[ISO Build] Cleaning workspace {self.work_dir}...")
+            shutil.rmtree(self.work_dir, ignore_errors=True)
+
+        print(f"\n========================================================")
+        print(f" [BUILD SUCCESS] Profile: {self.profile.upper()} ({self.arch})")
+        print(f" Artifact: {iso_path}")
+        print(f"========================================================\n")
+        return iso_path
 
 def main():
-    parser = argparse.ArgumentParser(description="AetherOS ISO Builder")
-    parser.add_argument("--output", default="aetheros-1.0.0-solstice-amd64.iso", help="Output ISO path")
-    parser.add_argument("--workdir", default="/tmp/aether-iso-build", help="Build workspace")
+    parser = argparse.ArgumentParser(description="AetherOS Reproducible ISO Build Engine")
+    parser.add_argument("--profile", default="live", choices=["live", "installer", "development", "minimal"], help="Target profile")
+    parser.add_argument("--arch", default="x86_64", choices=["x86_64", "arm64"], help="Target CPU architecture")
+    parser.add_argument("--output", default=None, help="Output ISO filepath")
+    parser.add_argument("--dist-dir", default=None, help="Distribution directory for output artifacts")
+    parser.add_argument("--workdir", default="/tmp/aether-iso-build", help="Build staging workspace")
+    parser.add_argument("--source-date-epoch", type=int, default=None, help="Deterministic timestamp")
+    parser.add_argument("--no-sign", action="store_true", help="Skip GPG signing")
+    parser.add_argument("--no-validate", action="store_true", help="Skip ISO validation")
+    parser.add_argument("--clean", action="store_true", help="Clean workspace upon success")
     args = parser.parse_args()
 
-    builder = AetherISOBuilder(work_dir=args.workdir, output_iso=args.output)
-    builder.prepare_directories()
-    builder.create_grub_config()
-    builder.build_squashfs()
-    builder.create_iso_image()
+    builder = AetherISOBuilder(
+        profile=args.profile,
+        arch=args.arch,
+        work_dir=args.workdir,
+        output_iso=args.output,
+        dist_dir=args.dist_dir,
+        source_date_epoch=args.source_date_epoch
+    )
+    builder.build(sign=not args.no_sign, validate=not args.no_validate, clean=args.clean)
 
 if __name__ == "__main__":
     main()

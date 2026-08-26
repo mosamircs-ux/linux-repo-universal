@@ -62,9 +62,11 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
         # polkit
         polkit_dest = os.path.join(target_dir, "usr/share/polkit-1/actions")
         os.makedirs(polkit_dest, exist_ok=True)
-        polkit_src = os.path.join(sys_src, "polkit/org.aetheros.policy")
+        polkit_src = os.path.join(sys_src, "polkit")
         if os.path.exists(polkit_src):
-            shutil.copy2(polkit_src, polkit_dest)
+            for item in os.listdir(polkit_src):
+                if item.endswith(".policy"):
+                    shutil.copy2(os.path.join(polkit_src, item), polkit_dest)
 
         # pipewire (if not minimal)
         if profile != "minimal":
@@ -213,6 +215,22 @@ def assemble_rootfs(target_dir: str, profile: str = "live", arch: str = "x86_64"
             os.makedirs(gtk4_light, exist_ok=True)
             shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-3.0/gtk-light.css"), os.path.join(gtk3_light, "gtk.css"))
             shutil.copy2(os.path.join(themes_src, "gtk-theme/gtk-4.0/gtk-light.css"), os.path.join(gtk4_light, "gtk.css"))
+
+        # Core System Applications (aether-settings)
+        apps_src = os.path.join(REPO_ROOT, "apps")
+        if os.path.exists(apps_src):
+            print("[RootFS] Staging core applications (aether-settings)...")
+            settings_dest = os.path.join(target_dir, "usr/lib/aether/settings")
+            os.makedirs(settings_dest, exist_ok=True)
+            settings_app_src = os.path.join(apps_src, "aether-settings")
+            if os.path.exists(settings_app_src):
+                shutil.copytree(settings_app_src, settings_dest, dirs_exist_ok=True)
+                shutil.copy2(os.path.join(settings_app_src, "settings_app.py"), os.path.join(bin_dest, "aether-settings"))
+                app_dest = os.path.join(target_dir, "usr/share/applications")
+                os.makedirs(app_dest, exist_ok=True)
+                d_file = os.path.join(settings_app_src, "aether-settings.desktop")
+                if os.path.exists(d_file):
+                    shutil.copy2(d_file, app_dest)
 
     # 5. Profile-specific flags and desktop files
     if profile == "installer":

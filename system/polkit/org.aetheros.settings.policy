@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+  <vendor>AetherOS</vendor>
+  <vendor_url>https://aetheros.org</vendor_url>
+  <icon_name>preferences-system</icon_name>
+
+  <action id="org.aetheros.settings.manage-network">
+    <description>Manage network configuration and VPN</description>
+    <message>Authentication is required to modify system network settings</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.aetheros.settings.manage-users">
+    <description>Manage user accounts and privileges</description>
+    <message>Authentication is required to add, edit or remove user accounts</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.aetheros.settings.manage-datetime">
+    <description>Set system clock, timezone and NTP</description>
+    <message>Authentication is required to set the system date and time</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.aetheros.settings.manage-security">
+    <description>Configure system firewall and security policies</description>
+    <message>Authentication is required to modify security and firewall settings</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.aetheros.settings.manage-storage">
+    <description>Manage storage devices, partitions and formatting</description>
+    <message>Authentication is required to modify disk partitions or filesystem options</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.aetheros.settings.manage-backup">
+    <description>Create and restore system Btrfs snapshots</description>
+    <message>Authentication is required to create or restore system snapshots</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+</policyconfig>
